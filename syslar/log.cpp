@@ -1,5 +1,6 @@
 #include "log.h"
 #include<string>
+#include<iostream>
 
 namespace sylar {
 
@@ -50,4 +51,31 @@ void Logger::error(LogEvent::ptr event){
 void Logger::fatal(LogEvent::ptr event){
     log(LogLevel::FATAL, event);
 }
-};
+
+FileLogAppender::FileLogAppender(const std::string& filename):
+m_filename(filename)
+{
+
+}
+
+void FileLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
+    if (level >= m_level) {
+        m_filestream << m_formatter->format(event);
+    }
+}
+
+bool FileLogAppender::reopen() {
+    if (m_filestream) {
+        m_filestream.close();
+    }
+    m_filestream.open(m_filename);
+    return !!m_filestream; //双感叹号!!作用就是非0值转成1，而0值还是0.
+}
+
+void StdoutLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
+    if (level >= m_level) {
+        std::cout << m_formatter->format(event);
+    }
+}
+
+}
