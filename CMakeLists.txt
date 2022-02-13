@@ -16,9 +16,9 @@ set(CMAKE_C_FLAGS "$ENV{CXXFLAGS} -rdynamic -O3 -fPIC -ggdb -std=c11 -Wall -Wno-
 set(LIB_SRC sylar/log.cpp)
 
 add_library(sylar SHARED ${LIB_SRC})  # 生成动态库
-add_executable(test tests/test.cpp)  # 生成可执行文件test
-add_dependencies(test sylar)
-target_link_libraries(test sylar)  # 连接动态库
+add_executable(log ${CMAKE_SOURCE_DIR}/tests/tests.cpp)  # 生成可执行文件test
+add_dependencies(log sylar)
+target_link_libraries(log sylar)  # 连接动态库
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
