@@ -1,0 +1,19 @@
+logs:
+    - name: root
+      level: info
+      appenders:
+          - type: FileLogAppender
+            file: /apps/logs/sylar/root.txt
+          - type: StdoutLogAppender
+    - name: system
+      level: info
+      appenders:
+          - type: FileLogAppender
+            file: /apps/logs/sylar/system.txt
+          - type: StdoutLogAppender
+# 上面的logs[{{name, root}, {level, info}, ...}, {...}]
+
+# 下面是测试用的
+system:
+    port: 9980
+    value: 15
