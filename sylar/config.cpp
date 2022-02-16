@@ -56,7 +56,7 @@ namespace sylar {
                     var->fromString(i.second.Scalar());
                 } else {
                     std::stringstream ss;
-                    ss << i.second.as<std::string>();
+                    ss << i.second;
                     var->fromString(ss.str());
                 }
             }
