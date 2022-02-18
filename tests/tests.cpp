@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
     sylar::FileLogAppender::ptr file_appender(new sylar::FileLogAppender("./log.txt"));
     sylar::LogFormatter::ptr fmt(new sylar::LogFormatter("%d%T {%p} %t%m%n"));
     file_appender->setLevel(sylar::LogLevel::ERROR);
-    file_appender->setFormattter(fmt);
+    file_appender->setFormatter(fmt);
     logger->addAppender(file_appender);
 
 

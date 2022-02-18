@@ -4,11 +4,10 @@
 #include<utility>
 
 namespace sylar {
-    Config::ConfigVarMap Config::m_datas;
     // 这里的LookupBase和Lookup含义是不一样的，后者是侧重创造方面，前者才更偏向查找含义
     ConfigVarBase::ptr Config::LookupBase(const std::string& name) {
-        auto it = m_datas.find(name);
-        return it == m_datas.end() ? nullptr:it->second;
+        auto it = GetDatas().find(name);
+        return it == GetDatas().end() ? nullptr:it->second;
     }
 
     /*
