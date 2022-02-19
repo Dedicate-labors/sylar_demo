@@ -31,6 +31,7 @@ LogEvent::~LogEvent() {
 }
 
 
+// 接受LogLevel::Level，通过宏函数转换为const char * 类型
 const char * LogLevel::ToString(LogLevel::Level level) {
     switch (level)
     {
@@ -51,8 +52,8 @@ const char * LogLevel::ToString(LogLevel::Level level) {
 }
 
 
+// 接受字符串类型，通过宏函数转换为LogLevel::Level
 LogLevel::Level LogLevel::FromString(std::string str) {
-    // str转为大写
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 #define XX(level) \
     if(strcmp(str.c_str(), #level) == 0) return level;
@@ -65,16 +66,20 @@ LogLevel::Level LogLevel::FromString(std::string str) {
 #undef XX
 }
 
+
+// 将不定式参数通过格式化形成的字符串传入stringstream m_ss
 void LogEvent::format(const char * fmt, ...) {
     va_list al;
-    va_start(al, fmt);
+    va_start(al, fmt);  // 选择自fmt后开始的不定参数
     format(fmt, al);
-    va_end(al);
+    va_end(al);  // 清空al指针
 }
 
 
+// 将va_list al通过格式化形成的字符串传入stringstream m_ss
 void LogEvent::format(const char * fmt, va_list al) {
     char * buf = nullptr;
+    // vasprintf专门负责va_list类型的sprintf
     int len = vasprintf(&buf, fmt, al);
     if(len != -1) {
         m_ss << std::string(buf, len);
@@ -113,7 +118,7 @@ class LevelFormatItem: public LogFormatter::FormatItem{
 public:
     LevelFormatItem(const std::string & fmt = "") {}
     void format(std::ostream& os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {
-        os << LogLevel::ToString(level);
+        os << LogLevel::ToString(event->getLevel());
     }
 };
 
@@ -165,10 +170,7 @@ public:
 
 class DateTimeFormatItem: public LogFormatter::FormatItem{
 public:
-    DateTimeFormatItem(const std::string & format = "%Y-%m-%d %H:%M:%S"): m_format(format)
-    {
-            
-    }
+    DateTimeFormatItem(const std::string & format = "%Y-%m-%d %H:%M:%S"): m_format(format) { }
     void format(std::ostream& os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {
         time_t now_time = event->getTime();
         struct tm * tp = localtime(&now_time);
@@ -370,7 +372,7 @@ std::string FileLogAppender::toYamlString() {
     YAML::Node node;
     node["type"] = "FileLogAppender";
     node["file"] = m_filename;
-    node["level"] = LogLevel::ToString(m_level);
+    if(m_level != LogLevel::UNKNOWN) node["level"] = LogLevel::ToString(m_level);
     if(m_formatter) node["formatter"] = m_formatter->getPattern();
     std::stringstream ss;
     ss << node;
@@ -382,7 +384,7 @@ bool FileLogAppender::reopen() {
     if (m_filestream.is_open()) {
         m_filestream.close();
     }
-    m_filestream.open(m_filename);
+    m_filestream.open(m_filename, std::ios::app);
     return !!m_filestream; //双感叹号!!作用就是非0值转成1，而0值还是0.
 }
 
@@ -397,7 +399,7 @@ void StdoutLogAppender::log(Logger::ptr logger, LogLevel::Level level, LogEvent:
 std::string StdoutLogAppender::toYamlString() {
     YAML::Node node;
     node["type"] = "StdoutLogAppender";
-    node["level"] = LogLevel::ToString(m_level);
+    if(m_level != LogLevel::UNKNOWN) node["level"] = LogLevel::ToString(m_level);
     if(m_formatter) node["formatter"] = m_formatter->getPattern();
     std::stringstream ss;
     ss << node;
@@ -405,12 +407,17 @@ std::string StdoutLogAppender::toYamlString() {
 }
 
 
+// 当构造一个LogFormatter时必须传入pattern, 之后对其init()解析，解析结果放入m_items中
 LogFormatter::LogFormatter(const std::string& pattern): m_pattern(pattern)
 {
     init();
 }
 
 
+/*
+params: logger指针, level, event指针
+return：将日志格式化的string返回
+*/
 std::string LogFormatter::format(Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) {
     std::stringstream ss;
     for (auto & i: m_items) {
@@ -721,8 +728,8 @@ struct LogIniter {
                         ap.reset(new StdoutLogAppender);
                     }
                     ap->setLevel(a.level);
-                    if(!a.formatter.empty()) ap->setFormatter(a.formatter);
                     // 如果ap没有fmt，那么使用logger本身默认的fmt
+                    if(!a.formatter.empty()) ap->setFormatter(a.formatter);
                     logger->addAppender(ap);
                 }
             }

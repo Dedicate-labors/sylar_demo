@@ -13,7 +13,13 @@
 #include "singleton.h"
 #include "util.h"
 
-// 下面的宏主要用于直接填写message
+/*
+params: 接受logger指针和level, 构造默认LogEvent以及LogEventWrap
+return: LogEventWrap管理的LogEvent的stringstream m_ss
+
+目的：希望通过传入的logger打印一条level级别的日志
+原理：LogEventWrap对象析构时将调用传入LogEvent的logger对象的log方法打印LogEvent的信息
+*/
 #define SYLAR_LOG_LEVEL(logger, level) \
     if(logger->getLevel() <= level) \
         sylar::LogEventWrap(sylar::LogEvent::ptr(new sylar::LogEvent(logger, level,\
@@ -26,7 +32,15 @@
 #define SYLAR_LOG_ERROR(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::ERROR)
 #define SYLAR_LOG_FATAL(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::FATAL)
 
-// 下面的宏，使用格式化方式将日志级别level的日志写入到logger
+
+/*
+params: 接受logger指针和level, fmt, 以及不定参数，构造默认LogEvent以及LogEventWrap
+return: LogEventWrap管理的LogEvent的format方法(fmt, 不定参数)
+
+目的：通过logger把(不定参数+fmt)形成的字符串输出为level级别的日志
+原理：(不定参数+fmt)形成的字符串写入LogEvent的stringstream m_ss中，LogEventWrap对象析构时
+将调用传入LogEvent的logger对象的log方法打印LogEvent的信息
+*/
 #define SYLAR_LOG_FMT_LEVEL(logger, level, fmt, ...) \
     if(logger->getLevel() <= level) \
         sylar::LogEventWrap(sylar::LogEvent::ptr(new sylar::LogEvent(logger, level, \
@@ -44,11 +58,12 @@
 
 namespace sylar {
 
-class Logger; // 前置类声明
+// 前置类声明
+class Logger;
 class LoggerManager;
 
 
-//日志级别
+//日志级别：辅助类，可以默认构造
 class LogLevel {
 public:
     enum Level {
@@ -65,7 +80,7 @@ public:
 };
 
 
-//一个日志就是一个logevent, 日志事件
+// 日志事件：LogEvent主要负责保存和返回日志信息，构造参数众多，无默认参数
 class LogEvent {
 public:
     typedef std::shared_ptr<LogEvent> ptr; 
@@ -87,18 +102,22 @@ public:
     void format(const char * fmt, ...);
     void format(const char *fmt, va_list al);
 private:
-    const char * m_file = nullptr;  //文件名
-    int32_t m_line = 0;             //符号
-    uint32_t m_elapse = 0;          //程序启动开始到现在的毫秒数
-    pid_t m_threadId;               //线程id
-    uint32_t m_fiberId = 0;         //协程id
-    uint64_t m_time = 0;            //时间戳
-    std::stringstream m_ss;
-    std::shared_ptr<Logger> m_logger;
-    LogLevel::Level m_level;
+    const char * m_file = nullptr;      //文件名
+    int32_t m_line = 0;                 //符号
+    uint32_t m_elapse = 0;              //程序启动开始到现在的毫秒数
+    pid_t m_threadId;                   //线程id
+    uint32_t m_fiberId = 0;             //协程id
+    uint64_t m_time = 0;                //时间戳
+    std::stringstream m_ss;             //日志内容
+    std::shared_ptr<Logger> m_logger;   //打印日志的logger指针
+    LogLevel::Level m_level;            //日志level
 };
 
 
+/*
+事件包装：必须传入LogEvent进行构造
+对LogEvent对象的简单包装，主要功能是在析构时使用LogEvent的logger打印日志
+*/
 class LogEventWrap {
 public:
     LogEventWrap(LogEvent::ptr e);
@@ -110,11 +129,12 @@ private:
 };
 
 
-//日志格式器
+//日志格式器: 必须传入符合规则的pattern并对其解析(init()函数)，最后保存在m_items对象中
 class LogFormatter {
 public:
     typedef std::shared_ptr<LogFormatter> ptr;
     LogFormatter(const std::string& pattern);
+    // 返回字符串类型的pattern，即日志格式
     std::string getPattern() { return m_pattern; }
     std::string format(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event);
 public:
