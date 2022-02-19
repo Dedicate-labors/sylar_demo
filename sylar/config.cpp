@@ -4,7 +4,7 @@
 #include<utility>
 
 namespace sylar {
-    // 这里的LookupBase和Lookup含义是不一样的，后者是侧重创造方面，前者才更偏向查找含义
+    // 静态成员函数，返回指向ConfigVar<T>的ConfigVarBase::ptr
     ConfigVarBase::ptr Config::LookupBase(const std::string& name) {
         auto it = GetDatas().find(name);
         return it == GetDatas().end() ? nullptr:it->second;
@@ -37,6 +37,7 @@ namespace sylar {
         }
     }
 
+    // 加载YAML配置文件，并更新s_datas内部的ConfigVar<T>的值
     void Config::LoadFromYaml(const YAML::Node& root) {
         std::list<std::pair<std::string, const YAML::Node>> all_nodes;
         ListAllMember("", root, all_nodes);

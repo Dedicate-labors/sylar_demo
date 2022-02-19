@@ -23,6 +23,8 @@ std::shared_ptr<T> GetInstancePtr() {
 
 }
 
+
+// 单例模板
 template<class T, class X = void, int N = 0>
 class Singleton {
 public:

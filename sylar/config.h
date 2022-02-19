@@ -17,6 +17,7 @@
 
 namespace sylar {
 
+// 配置抽象类
 class ConfigVarBase {
 public:
     typedef std::shared_ptr<ConfigVarBase> ptr;
@@ -29,17 +30,18 @@ public:
 
     const std::string& getName() const { return m_name;}
     const std::string& getDescription() const { return m_description;}
-    // 有纯虚函数是抽象类
+    // 纯虚函数, 负责转配置类型为string类型
     virtual std::string toString() = 0;
+    // 纯虚函数，负责从string类型转为配置类型
     virtual bool fromString(const std::string& val) = 0;
     virtual std::string getTypeName() const = 0;
 protected:
-    std::string m_name;  // 配置参数名称
+    std::string m_name;         // 配置参数名称
     std::string m_description;  // 配置参数描述
 };
 
 
-//F from_type, T to_type
+//F from_type, T to_type，负责简单类型相互转换
 template<class F, class T>
 class LexicalCast {
 public:
@@ -49,7 +51,7 @@ public:
 };
 
 
-// 进行特化，针对map,vector等复杂类型
+// 模板特化，针对string类型转为复杂类型vector<T>
 template<class T>
 class LexicalCast<std::string, std::vector<T>> {
 public:
@@ -68,6 +70,7 @@ public:
 };
 
 
+// 模板特化，针对复杂类型vector<T>转为string类型
 template<class F>
 class LexicalCast<std::vector<F>, std::string> {
 public:
@@ -83,6 +86,7 @@ public:
 };
 
 
+// 模板特化，针对string类型转为复杂类型list<T>
 template<class T>
 class LexicalCast<std::string, std::list<T>> {
 public:
@@ -101,6 +105,7 @@ public:
 };
 
 
+// 模板特化，针对复杂类型list<T>转为string类型
 template<class F>
 class LexicalCast<std::list<F>, std::string> {
 public:
@@ -116,6 +121,7 @@ public:
 };
 
 
+// 模板特化，针对string类型转为复杂类型set<T>
 template<class T>
 class LexicalCast<std::string, std::set<T>> {
 public:
@@ -134,6 +140,7 @@ public:
 };
 
 
+// 模板特化，针对复杂类型set<T>转为string类型
 template<class F>
 class LexicalCast<std::set<F>, std::string> {
 public:
@@ -149,6 +156,7 @@ public:
 };
 
 
+// 模板特化，针对string类型转为复杂类型unordered_set<T>
 template<class T>
 class LexicalCast<std::string, std::unordered_set<T>> {
 public:
@@ -167,6 +175,7 @@ public:
 };
 
 
+// 模板特化，针对复杂类型unorder_set<T>转为string类型
 template<class F>
 class LexicalCast<std::unordered_set<F>, std::string> {
 public:
@@ -182,6 +191,7 @@ public:
 };
 
 
+// 模板特化，针对string类型转为复杂类型map<std::string, T>
 template<class T>
 class LexicalCast<std::string, std::map<std::string, T>> {
 public:
@@ -200,6 +210,7 @@ public:
 }; 
 
 
+// 模板特化，针对复杂类型map<std::string, F>转为string类型
 template<class F>
 class LexicalCast<std::map<std::string, F>, std::string> {
 public:
@@ -215,6 +226,7 @@ public:
 };
 
 
+// 模板特化，针对string类型转为复杂类型unordered_map<std::string, T>
 template<class T>
 class LexicalCast<std::string, std::unordered_map<std::string, T>> {
 public:
@@ -233,6 +245,7 @@ public:
 }; 
 
 
+// 模板特化，针对复杂类型unordered_map<std::string, F>转为string类型
 template<class F>
 class LexicalCast<std::unordered_map<std::string, F>, std::string> {
 public:
@@ -248,10 +261,10 @@ public:
 };
 
 
-// 针对复杂类型(如自定义类型)可以使用  序列化的方式进行字符串和类型间的转换
-// FromStr  T operator() (const std::string&)
-// ToStr std::string operator() (const T&)
-// FromStr和ToStr的默认本版只支持简单类型转换，如自定义，vector的复杂类型的不行
+/*
+ConfigVar继承ConfigVarBase是模板类，负责包含管理未知类型为T的配置成员，继承非
+模板重新类ConfigVarBase是为了后续通过多态方便管理ConfigVar
+*/
 template<class T, class FromStr = LexicalCast<std::string, T>
                 , class ToStr = LexicalCast<T, std::string>>
 class ConfigVar: public ConfigVarBase{
@@ -259,14 +272,17 @@ public:
     typedef std::shared_ptr<ConfigVar> ptr;
     typedef std::function<void(const T& old_value, const T& new_value)> on_change_cb;
 
+    // ConfigVar构造，包含配置名称，配置描述，配置值
     ConfigVar(const std::string& name, const T& default_value,
               const std::string& description = "")
-            :ConfigVarBase(name, description)
-            ,m_val(default_value) {}
+    :ConfigVarBase(name, description), m_val(default_value) {}
+    
+    /*
+    使用之前定义的类型转换类LexicalCast将配置值转为string
+    */
     std::string toString() override {
         try 
         {
-            // return boost::lexical_cast<std::string>(m_val);
             return ToStr()(m_val);
         } 
         catch(const std::exception& e) 
@@ -277,6 +293,9 @@ public:
         return "";
     }
 
+    /*
+    使用之前定义的类型转换类LexicalCast将string转换为配置值
+    */
     bool fromString(const std::string& val) override {
         try
         {
@@ -291,23 +310,32 @@ public:
         return false;
     }
 
+    // 获取配置值的类型
     std::string getTypeName() const {
         return typeid(m_val).name();
     }
 
+    // 获取配置值
     const T getValue() const { return m_val; }
+
+    /* 传入类型为T的配置值v
+    1. 如果v == ConfigVar的m_val，就不必重新设置（前提是T类型具备operator==()）
+    2. 赋值新v给ConfigVar的m_val时，调用ConfigVar<T>的相关回调函数
+    */
     void setValue(const T& v) {
-        if(v == m_val) return;  // T 类型变量不一定有 operator==();
+        if(v == m_val) return;
         for(auto& i : m_cbs) {
             i.second(m_val, v);
         }
         m_val = v;
     }
 
+    // 添加ConfigVar<T>的回调函数
     void addListener(uint64_t key, on_change_cb cb) {
         m_cbs[key] = cb;
     }
 
+    // 删除ConfigVar<T>的回调函数
     void delListener(uint64_t key) {
         auto it = m_cbs.find(key);
         if(it == m_cbs.end()) {
@@ -317,14 +345,17 @@ public:
         m_cbs.erase(it);
     }
 
+    // 获取ConfigVar<T>的回调函数
     on_change_cb getListener(uint64_t key) {
         auto it = m_cbs.find(key);
         return it == m_cbs.end() ? nullptr : it->second;
     }
 
+    // 清空ConfigVar<T>的回调函数
     void clearListener() {
         m_cbs.clear();
     }
+
 private:
     T m_val;
     // 变更回调函数组，方便标识和比较function，所以使用map
@@ -332,11 +363,17 @@ private:
 };
 
 
-// 下面的这个算是config管理员
+/* 
+Config类是ConfigVar的管理类，内部具有模板成员以及 单例ConfigVarMap管理ConfigVar;
+通过ConfigVarBase::ptr管理模板对象ConfigVar<T>
+*/
 class Config {
 public:
     typedef std::map<std::string, ConfigVarBase::ptr> ConfigVarMap;
-    // 找不到就创建
+
+    /*
+    模板成员函数，查询s_datas是否具备同名的ConfigVar，如果没有就重新创建
+    */
     template<class T>
     static typename ConfigVar<T>::ptr Lookup(const std::string& name, const T& default_value,
             const std::string& description = "") {
@@ -366,6 +403,10 @@ public:
                 GetDatas()[name] = v;
                 return v;
             }
+
+    /*
+    模板成员函数，赋值获取ConfigVar<T>::ptr, 没有就返回nullptr
+    */
     template<class T>
     static typename ConfigVar<T>::ptr Lookup(const std::string& name) {
         std::string tmp_name = name;
@@ -378,9 +419,13 @@ public:
         return std::dynamic_pointer_cast<ConfigVar<T>>(it->second);
     }
 
-    static void LoadFromYaml(const YAML::Node& root);
     static ConfigVarBase::ptr LookupBase(const std::string& name);
+
+    static void LoadFromYaml(const YAML::Node& root);
+
 private:
+
+    // 获取ConfigVar的map容器s_datas，它是单例
     static ConfigVarMap& GetDatas() {
         static ConfigVarMap s_datas;
         return s_datas;

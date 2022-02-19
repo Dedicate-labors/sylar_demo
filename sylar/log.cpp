@@ -88,6 +88,7 @@ void LogEvent::format(const char * fmt, va_list al) {
 }
 
 
+// 接受一个LogEvent指针，构造LogEventWrap对象
 LogEventWrap::LogEventWrap(LogEvent::ptr e)
 :m_event(e)
 {
@@ -95,82 +96,100 @@ LogEventWrap::LogEventWrap(LogEvent::ptr e)
 }
 
 
+// LogEventWrap对象析构时，使用LogEvent的log方法
 LogEventWrap::~LogEventWrap() {
     m_event->getLogger()->log(m_event->getLevel(), m_event);
 }
 
 
+// 返回LogEvent的stringstream
 std::stringstream& LogEventWrap::getSs() {
     return m_event->getSs();
 }
 
 
+// %m的格式类
 class MessageFormatItem: public LogFormatter::FormatItem{
 public:
     MessageFormatItem(const std::string& fmt = "") {}
+    // 从event中获取content并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getContent();
     }
 };
 
 
+// %p的格式类
 class LevelFormatItem: public LogFormatter::FormatItem{
 public:
-    LevelFormatItem(const std::string & fmt = "") {}
+    LevelFormatItem(const std::string & fmt = "") { }
+    // 转换LogLevel为字符串并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << LogLevel::ToString(level);
     }
 };
 
 
+// %r的格式类
 class ElapseFormatItem: public LogFormatter::FormatItem{
 public:
     ElapseFormatItem(const std::string & fmt = "") {}
+    // 从event中获取输出该log前耗费的秒数
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getElapse();
     }  
 };
 
 
+// %c的格式类
 class LoggerNameFormatItem: public LogFormatter::FormatItem{
 public:
     LoggerNameFormatItem(const std::string & fmt = "") {}
+    // 从event中获取logger的名称并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getLogger()->getName();
     }
 };
 
 
+// %t的格式类
 class ThreadIdFormatItem: public LogFormatter::FormatItem{
 public:
     ThreadIdFormatItem(const std::string & fmt = "") {}
+    // 从event中获取线程id并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getThreadId();
     }
 };
 
 
+// %F的格式类
 class FiberIdFormatItem: public LogFormatter::FormatItem{
 public:
     FiberIdFormatItem(const std::string & fmt = "") {}
+    // 从event中获取协程id并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getFiberId();
     }
 };
 
 
+// %n的格式类
 class NewLineFormatItem: public LogFormatter::FormatItem{
 public:
     NewLineFormatItem(const std::string & fmt = "") {}
+    // 输出\n
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << std::endl;
     }
 };
 
 
+// %d的格式类
 class DateTimeFormatItem: public LogFormatter::FormatItem{
 public:
     DateTimeFormatItem(const std::string & format = "%Y-%m-%d %H:%M:%S"): m_format(format) { }
+    // 从event中获取事件戳转换为时间字符串输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         time_t now_time = event->getTime();
         struct tm * tp = localtime(&now_time);
@@ -183,28 +202,34 @@ private:
 };
 
 
+// %f的格式类
 class FilenameFormatItem: public LogFormatter::FormatItem{
 public:
     FilenameFormatItem(const std::string & fmt = "") {}
+    // 从event中获取文件名称并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getFile();
     }
 };
 
 
+// %l的格式类
 class LineFormatItem: public LogFormatter::FormatItem{
 public:
     LineFormatItem(const std::string & fmt = "") {}
+    // 从event中获取行数并输出
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << event->getLine();
     }
 };
 
 
+// 非格式字符类
 class StringFormatItem: public LogFormatter::FormatItem{
 public:
-    // 这个的str是一定要的
+    // StringFormatItem构造一定需要传入字符串
     StringFormatItem(const std::string & str):m_string(str) {}
+    // 输出获取的非格式字符串
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << m_string;
     }
@@ -213,20 +238,33 @@ private:
 };
 
 
+// %T的格式类
 class TabFormatItem: public LogFormatter::FormatItem{
 public:
     TabFormatItem(const std::string & fmt = "") {}
+    // 输出\t
     void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) override {
         os << "\t";
     }
 };
 
 
+/*
+param：name="root", 初始化列表包含m_name(name),m_level(LogLevel::DEBUG)
+
+原理：构造logger时，生成一个LogFormatter对成员m_formatter设定默认值，
+接下来判断name是否为“root”并且logger的m_appenders是否empty,如果均为true
+那么调用addAppender对logger添加一个默认的StdoutLogAppender
+
+note：不要直接使用m_appenders添加StdoutLogAppender，logger的addAppender会做额外操作
+
+目的：一般logger不具备LogAppender, 只有默认的LogFormatter, root logger会具备StdoutLogAppender
+*/
 Logger::Logger(const std::string& name)
 :m_name(name)
 ,m_level(LogLevel::DEBUG)
 {
-    // 这里就是给m_formatter设定一个默认值
+    // 给m_formatter设定一个默认值
     m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"));
 
     if(name == "root" && m_appenders.empty()) {
@@ -235,6 +273,7 @@ Logger::Logger(const std::string& name)
 }
 
 
+// 将logger的信息转为YAML字符串
 std::string Logger::toYamlString() {
     YAML::Node node;
     node["name"] = m_name;
@@ -251,15 +290,30 @@ std::string Logger::toYamlString() {
 }
 
 
-// 必须在之后使用Logger::addAppender才能使新的m_formatter生效
-// 因为需要把fmt绑定到appender上
+/*
+param: LogFormatter
+return: 无
+
+原理：设置logger的m_formatter
+
+目的：设置logger的候补LogFormatter成员，当logger.addAppender()时，如果LogAppender
+没有LogFormatter就提供给LogAppender
+*/
 void Logger::setFormatter(LogFormatter::ptr val) {
     m_formatter = val;
 }
 
 
-// 必须在之后使用Logger::addAppender才能使新的m_formatter生效
-// 因为需要把fmt绑定到appender上
+
+/*
+param: const string& val
+return: 无
+
+原理：设置logger的m_formatter，因为传入的是字符串，LogFormatter有解析失败的可能
+
+目的：设置logger的候补LogFormatter成员，当logger.addAppender()时，如果LogAppender
+没有LogFormatter就提供给LogAppender
+*/
 void Logger::setFormatter(const std::string& val) {
     sylar::LogFormatter::ptr new_val(new sylar::LogFormatter(val));
     if(new_val->isError()) {
@@ -277,6 +331,14 @@ LogFormatter::ptr Logger::getFormatter() {
 }
 
 
+/*
+param: LogAppender指针
+return: 无
+
+原理：先判断LogAppender是否具备LogFormatter，不具备添加logger本身的默认m_formatter
+
+目的：添加一个携带LogFormatter的LogAppender到logger中
+*/
 void Logger::addAppender(LogAppender::ptr appender){
     if (!appender->getFormatter()) {
         appender->setFormatter(m_formatter);
@@ -285,6 +347,14 @@ void Logger::addAppender(LogAppender::ptr appender){
 }
 
 
+/*
+param: LogAppender指针
+return: 无
+
+原理：遍历m_appenders, 删除满足条件的LogAppender
+
+目的：控制m_appenders内部元素
+*/
 void Logger::delAppender(LogAppender::ptr appender){
     for(auto it = m_appenders.begin(); it != m_appenders.end();
         ++it) {
@@ -296,11 +366,23 @@ void Logger::delAppender(LogAppender::ptr appender){
 }
 
 
+// 清空m_appenders
 void Logger::clearAppenders() {
     m_appenders.clear();
 }
 
 
+/*
+param: level， event指针
+return: 无
+
+原理：需要先判断打印的日志level是否大于logger本身的level，如果为true:
+1. m_appenders不为空，那么使用内部的LogAppender进行日志log()
+2. m_appendes为空，备用的m_root logger存在，使用m_root.log()
+3. 如果1，2点均不满足，提醒用户
+
+目的：打印日志
+*/
 void Logger::log(LogLevel::Level level, LogEvent::ptr event){
     if(level >= m_level) {
         if(!m_appenders.empty()) {
@@ -313,6 +395,7 @@ void Logger::log(LogLevel::Level level, LogEvent::ptr event){
             m_root->log(level, event);
         }
         // 或者不输出日志
+        std::cout << "no LogAppenders or default m_root logger" << std::endl;
     }
 }
 
@@ -342,7 +425,7 @@ void Logger::fatal(LogEvent::ptr event){
 }
 
 
-// 新设置的fmt直接生效
+// 设置LogAppender的LogFormatter，但因为传入的是字符串有创建失败的可能
 void LogAppender::setFormatter(const std::string& fmt) {
     sylar::LogFormatter::ptr new_val(new sylar::LogFormatter(fmt));
     if(new_val->isError()) {
@@ -353,6 +436,8 @@ void LogAppender::setFormatter(const std::string& fmt) {
     m_formatter = new_val;
 }
 
+
+// FileLogAppender构造必须传入文件路径，并产生产生相关文件流
 FileLogAppender::FileLogAppender(const std::string& filename):
 m_filename(filename)
 {
@@ -360,6 +445,12 @@ m_filename(filename)
 }
 
 
+/*
+param：level, event
+return: 无
+
+功能：当传入level >= FileLogAppender本身的level时，调用LogFormatter向文件流输出日志
+*/
 void FileLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
     if (level >= m_level) {
         m_filestream << m_formatter->format(level, event);
@@ -367,6 +458,7 @@ void FileLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
 }
 
 
+// 将FileLogAppender的信息输出为YAML
 std::string FileLogAppender::toYamlString() {
     YAML::Node node;
     node["type"] = "FileLogAppender";
@@ -379,6 +471,7 @@ std::string FileLogAppender::toYamlString() {
 }
 
 
+// 以ios::app的方式重新生成文件流
 bool FileLogAppender::reopen() {
     if (m_filestream.is_open()) {
         m_filestream.close();
@@ -388,6 +481,12 @@ bool FileLogAppender::reopen() {
 }
 
 
+/*
+param：level, event
+return: 无
+
+功能：当传入level >= StdoutLogAppender本身的level时，调用LogFormatter向控制台输出日志
+*/
 void StdoutLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
     if (level >= m_level) {
         std::cout << m_formatter->format(level, event);
@@ -395,6 +494,7 @@ void StdoutLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
 }
 
 
+// 将StdoutLogAppender的信息输出为YAML
 std::string StdoutLogAppender::toYamlString() {
     YAML::Node node;
     node["type"] = "StdoutLogAppender";
@@ -431,6 +531,10 @@ m_pattern 可能包含 %xx %xx{yy} %% 正常/错误字符串 5个情况
 vec内元组含义:
 1. 如果是正常/错误字符串, std::get<0>(vec[i])是字符串内容，std::get<1>(vec[i])是空，std::get<2>(vec[i])是0
 2. 如果是正确格式字符串, std::get<0>(vec[i])是xx，std::get<1>(vec[i])是yy，std::get<2>(vec[i])是1
+
+静态字典m_format_items，表示不同格式化字符的格式化字符类
+
+根据vec和m_format_items生成m_items
 */
 void LogFormatter::init()
 {
@@ -551,6 +655,9 @@ void LogFormatter::init()
 }
 
 
+/*
+构造LoggerManager：先构造root logger并将root logger加入m_loggers对象中管理
+*/
 LoggerManager::LoggerManager() {
     m_root.reset(new Logger);
     // m_root->addAppender(LogAppender::ptr(new StdoutLogAppender));
@@ -559,13 +666,24 @@ LoggerManager::LoggerManager() {
 }
 
 
+/*
+param: const string& name
+return: Logger::ptr
+
+原理：
+1. name == "" 返回默认的root logger
+2. 从m_loggers中找到名称为name的logger并返回
+3. 找不到名为name的logger，创建一个普通logger，并赋值root logger给logger->m_root
+
+目的：根据logger's name获取或者创建一个logger并返回
+*/
 Logger::ptr LoggerManager::getLogger(const std::string& name) {
     if(name == "") return m_root;
     auto it = m_loggers.find(name);
     if(it != m_loggers.end()) {
         return it->second;
     }
-    // 自己创建一个
+
     Logger::ptr logger(new Logger(name));
     logger->m_root = m_root;  // 添加了一个默认logger, 备用的
     m_loggers[name] = logger;
@@ -573,6 +691,7 @@ Logger::ptr LoggerManager::getLogger(const std::string& name) {
 }
 
 
+// 将本身管理的所有logger转为YAML字符串
 std::string LoggerManager::toYamlString() {
     YAML::Node node;
     for(auto& i : m_loggers ) {

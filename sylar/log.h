@@ -76,7 +76,9 @@ public:
     };
 
     static const char * ToString(LogLevel::Level level);
+
     static LogLevel::Level FromString(std::string str);
+
 };
 
 
@@ -84,33 +86,57 @@ public:
 class LogEvent {
 public:
     typedef std::shared_ptr<LogEvent> ptr; 
+
     LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level,
             const char * file, int32_t line, uint32_t elapse,
             pid_t thread_id, uint32_t fiber_id, uint64_t time);
+
     ~LogEvent();
+
     const char * getFile() const { return m_file; }
+
     int32_t getLine() const { return m_line; }
+
     uint32_t getElapse() const { return m_elapse; }
+
     pid_t getThreadId() const { return m_threadId; }
+
     uint32_t getFiberId() const { return m_fiberId; }
+
     uint64_t getTime() const { return m_time; }
+
     const std::string getContent() const { return m_ss.str(); }
+
     std::shared_ptr<Logger> getLogger() const { return m_logger; }
+
     LogLevel::Level getLevel() const { return m_level; }
 
     std::stringstream& getSs() { return m_ss; }
+
     void format(const char * fmt, ...);
+
     void format(const char *fmt, va_list al);
+
 private:
+
     const char * m_file = nullptr;      //文件名
+
     int32_t m_line = 0;                 //符号
+
     uint32_t m_elapse = 0;              //程序启动开始到现在的毫秒数
+
     pid_t m_threadId;                   //线程id
+
     uint32_t m_fiberId = 0;             //协程id
+
     uint64_t m_time = 0;                //时间戳
+
     std::stringstream m_ss;             //日志内容
+
     std::shared_ptr<Logger> m_logger;   //打印日志的logger指针
+
     LogLevel::Level m_level;            //日志level
+
 };
 
 
@@ -120,134 +146,221 @@ private:
 */
 class LogEventWrap {
 public:
+
     LogEventWrap(LogEvent::ptr e);
+
     ~LogEventWrap();
+
     LogEvent::ptr getEvent() const { return m_event; }
+
     std::stringstream& getSs();
+
 private:
+
     LogEvent::ptr m_event;
+
 };
 
 
 //日志格式器: 必须传入符合规则的pattern并对其解析(init()函数)，最后保存在m_items对象中
 class LogFormatter {
 public:
+
     typedef std::shared_ptr<LogFormatter> ptr;
+
     LogFormatter(const std::string& pattern);
+
     // 返回字符串类型的pattern，即日志格式
     std::string getPattern() { return m_pattern; }
+
     std::string format(LogLevel::Level level, LogEvent::ptr event);
+
 public:
+
+    // 抽象类，定义不同日志格式化字符的输出
     class FormatItem {
     public:
+
         typedef std::shared_ptr<FormatItem> ptr;
+
         FormatItem(const std::string& fmt = ""){};
+
         virtual ~FormatItem() {}
+
+        // 纯虚函数，定义如何格式化输出日志信息
         virtual void format(std::ostream& os, LogLevel::Level level, LogEvent::ptr event) = 0;
+
     };
+
     void init();
 
+    // LogFormatter构造是否失败
     bool isError() const { return m_error; }
+
 private:    
-    std::string m_pattern;
-    std::vector<FormatItem::ptr> m_items;
-    bool m_error = false; // 默认无错
+
+    std::string m_pattern;                  // 格式字符串
+
+    std::vector<FormatItem::ptr> m_items;   // 装载格式字符类
+
+    bool m_error = false;                   // 默认无错
+    
 };
 
-//日志输出目的地
-class  LogAppender {
+//日志输出目的地：抽象类，默认LogLevel是LogLevel::DEBUG，其下一级为LogFormatter
+class LogAppender {
 public:
+
     typedef std::shared_ptr<LogAppender> ptr; 
+
     virtual ~LogAppender() {}
+
     LogAppender(){ m_level = LogLevel::DEBUG; }
 
+    // 纯虚函数，输出日志
     virtual void log(LogLevel::Level level, LogEvent::ptr event) = 0;
+
+    // 纯虚函数，转换LogAppender为YAML字符串
     virtual std::string toYamlString() = 0;
 
+    // 设置LogAppender的LogFormatter
     void setFormatter(LogFormatter::ptr val) { m_formatter = val;}
+
     void setFormatter(const std::string& fmt);
+
+    // 获取LogAppender的LogFormatter
     LogFormatter::ptr getFormatter() const { return m_formatter; }
+
+    // 设置LogAppender的LogLevel
     void setLevel(LogLevel::Level level) { m_level = level; }
+
+    // 获取LogAppender的LogLevel
     LogLevel::Level getLevel() { return  m_level; }
 
 protected:
+
     LogLevel::Level m_level;
+
     LogFormatter::ptr m_formatter;
+    
 };
 
-//日志器 
+//日志器: 用于输出日志的高级别封装类，其下一级为LogAppender
 class Logger {
 friend class LoggerManager;
 public:
+
     typedef std::shared_ptr<Logger> ptr;
 
     Logger(const std::string& name = "root");
+
     void log(LogLevel::Level level, LogEvent::ptr event);
     
     void debug(LogEvent::ptr event);
+
     void info(LogEvent::ptr event);
+
     void warn(LogEvent::ptr event);
+
     void error(LogEvent::ptr event);
+
     void fatal(LogEvent::ptr event);
 
     void addAppender(LogAppender::ptr appender);
+
     void delAppender(LogAppender::ptr appender);
+
     void clearAppenders();
+
     LogLevel::Level getLevel() const { return m_level; }
+
     void setLevel(LogLevel::Level val) { m_level = val; }
+
     const std::string & getName() const { return m_name; }
-    // 设置logger本身的默认formatter
+
     void setFormatter(LogFormatter::ptr val);
+
     void setFormatter(const std::string& val);
+
     LogFormatter::ptr getFormatter();
+
     std::string toYamlString();
+
 private:
+
     std::string m_name;                         //日志名称
+
     LogLevel::Level m_level;                    //日志级别
+
     std::list<LogAppender::ptr>  m_appenders;   //Appender集合
+
     LogFormatter::ptr m_formatter;              //不使用Appender的默认情况
+
     Logger::ptr m_root;
+
 };
 
 
 // 输出到控制台的Appender
 class StdoutLogAppender : public LogAppender {
 public:
+
     typedef std::shared_ptr<StdoutLogAppender> ptr;
+
     void log(LogLevel::Level level, LogEvent::ptr event) override;
+
     std::string toYamlString() override;
+
 private:
+
 };
 
 // 输出到文件的Appender
 class FileLogAppender : public LogAppender {
 public:
+
     typedef std::shared_ptr<FileLogAppender> ptr;
+
     FileLogAppender(const std::string& filename);
+
     void log(LogLevel::Level level, LogEvent::ptr event) override;
+
     std::string toYamlString() override;
 
     //重新打开文件，文件打开成功返回true
     bool reopen();
+
 private:
+
     std::string m_filename;
+
     std::ofstream m_filestream;
 };
 
 
-// LoggerManager注意是单例
+// Logger管理类，无参数，所有logger应通过LoggerManager进行获得，所以本身实例应该是单例
 class LoggerManager {
 public:
+
     LoggerManager();
+
+    // 返回构造的默认root logger
     Logger::ptr getRoot() const { return m_root; }
+
     Logger::ptr getLogger(const std::string& name);
+
     std::string toYamlString();
+
     void init();
+
 private:
+
     std::map<std::string, Logger::ptr> m_loggers;
+
     Logger::ptr m_root;
 };
 
 typedef sylar::Singleton<LoggerManager> LoggerMgr;
+
 }
 #endif
