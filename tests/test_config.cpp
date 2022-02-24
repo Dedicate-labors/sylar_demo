@@ -194,6 +194,8 @@ void test_log() {
     std::cout << sylar::LoggerMgr::GetInstance().toYamlString() << std::endl;
     std::cout << "=================" << std::endl;
     SYLAR_LOG_INFO(system_log) << "hello system" << std::endl;
+    system_log->setFormatter("%d - %m%n");
+    SYLAR_LOG_INFO(system_log) << "hello system" << std::endl;
 }
 
 

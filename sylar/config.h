@@ -351,7 +351,7 @@ public:
                     } else {
                         SYLAR_LOG_ERROR(SYLAR_LOG_ROOT()) << "Lookup name=" << name << " exists but type not "
                                 << typeid(T).name() << " real_type=" << it->second->getTypeName()
-                                << " values:\n" << it->second->toString();
+                                << " values: " << it->second->toString();
                         return tmp;
                     }
                 }

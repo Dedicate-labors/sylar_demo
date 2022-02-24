@@ -233,6 +233,33 @@ sylar/util.cpp.s:
 	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/util.cpp.s
 .PHONY : sylar/util.cpp.s
 
+tests/test.o: tests/test.cpp.o
+
+.PHONY : tests/test.o
+
+# target to build an object file
+tests/test.cpp.o:
+	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/test.cpp.o
+.PHONY : tests/test.cpp.o
+
+tests/test.i: tests/test.cpp.i
+
+.PHONY : tests/test.i
+
+# target to preprocess a source file
+tests/test.cpp.i:
+	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/test.cpp.i
+.PHONY : tests/test.cpp.i
+
+tests/test.s: tests/test.cpp.s
+
+.PHONY : tests/test.s
+
+# target to generate assembly for a file
+tests/test.cpp.s:
+	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/test.cpp.s
+.PHONY : tests/test.cpp.s
+
 tests/test_config.o: tests/test_config.cpp.o
 
 .PHONY : tests/test_config.o
@@ -260,33 +287,6 @@ tests/test_config.cpp.s:
 	$(MAKE) -f CMakeFiles/test_config.dir/build.make CMakeFiles/test_config.dir/tests/test_config.cpp.s
 .PHONY : tests/test_config.cpp.s
 
-tests/tests.o: tests/tests.cpp.o
-
-.PHONY : tests/tests.o
-
-# target to build an object file
-tests/tests.cpp.o:
-	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/tests.cpp.o
-.PHONY : tests/tests.cpp.o
-
-tests/tests.i: tests/tests.cpp.i
-
-.PHONY : tests/tests.i
-
-# target to preprocess a source file
-tests/tests.cpp.i:
-	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/tests.cpp.i
-.PHONY : tests/tests.cpp.i
-
-tests/tests.s: tests/tests.cpp.s
-
-.PHONY : tests/tests.s
-
-# target to generate assembly for a file
-tests/tests.cpp.s:
-	$(MAKE) -f CMakeFiles/test_log.dir/build.make CMakeFiles/test_log.dir/tests/tests.cpp.s
-.PHONY : tests/tests.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -307,12 +307,12 @@ help:
 	@echo "... sylar/util.o"
 	@echo "... sylar/util.i"
 	@echo "... sylar/util.s"
+	@echo "... tests/test.o"
+	@echo "... tests/test.i"
+	@echo "... tests/test.s"
 	@echo "... tests/test_config.o"
 	@echo "... tests/test_config.i"
 	@echo "... tests/test_config.s"
-	@echo "... tests/tests.o"
-	@echo "... tests/tests.i"
-	@echo "... tests/tests.s"
 .PHONY : help
 
 

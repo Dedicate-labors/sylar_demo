@@ -156,6 +156,7 @@ private:
 
 //日志输出目的地
 class  LogAppender {
+friend class Logger;
 public:
     typedef std::shared_ptr<LogAppender> ptr; 
     virtual ~LogAppender() {}
@@ -164,7 +165,7 @@ public:
     virtual void log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
     virtual std::string toYamlString() = 0;
 
-    void setFormatter(LogFormatter::ptr val) { m_formatter = val;}
+    void setFormatter(LogFormatter::ptr val);
     void setFormatter(const std::string& fmt);
     LogFormatter::ptr getFormatter() const { return m_formatter; }
     void setLevel(LogLevel::Level level) { m_level = level; }
@@ -172,6 +173,7 @@ public:
 
 protected:
     LogLevel::Level m_level;
+    bool m_hasFormatter = false;  // 判断appender是否具备自己的fmt，logger给的默认fmt不算入
     LogFormatter::ptr m_formatter;
 };
 
@@ -212,6 +214,7 @@ private:
 
 // 输出到控制台的Appender
 class StdoutLogAppender : public LogAppender {
+friend class Logger;
 public:
     typedef std::shared_ptr<StdoutLogAppender> ptr;
     void log(Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override;
@@ -221,6 +224,7 @@ private:
 
 // 输出到文件的Appender
 class FileLogAppender : public LogAppender {
+friend class Logger;
 public:
     typedef std::shared_ptr<FileLogAppender> ptr;
     FileLogAppender(const std::string& filename);
