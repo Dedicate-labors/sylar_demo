@@ -207,8 +207,9 @@ private:
     
 };
 
-//日志输出目的地：抽象类，默认LogLevel是LogLevel::DEBUG，其下一级为LogFormatter
-class LogAppender {
+//日志输出目的地
+class  LogAppender {
+friend class Logger;
 public:
 
     typedef std::shared_ptr<LogAppender> ptr; 
@@ -223,9 +224,7 @@ public:
     // 纯虚函数，转换LogAppender为YAML字符串
     virtual std::string toYamlString() = 0;
 
-    // 设置LogAppender的LogFormatter
-    void setFormatter(LogFormatter::ptr val) { m_formatter = val;}
-
+    void setFormatter(LogFormatter::ptr val);
     void setFormatter(const std::string& fmt);
 
     // 获取LogAppender的LogFormatter
@@ -240,7 +239,7 @@ public:
 protected:
 
     LogLevel::Level m_level;
-
+    bool m_hasFormatter = false;  // 判断appender是否具备自己的fmt，logger给的默认fmt不算入
     LogFormatter::ptr m_formatter;
     
 };
@@ -303,6 +302,7 @@ private:
 
 // 输出到控制台的Appender
 class StdoutLogAppender : public LogAppender {
+friend class Logger;
 public:
 
     typedef std::shared_ptr<StdoutLogAppender> ptr;
@@ -317,6 +317,7 @@ private:
 
 // 输出到文件的Appender
 class FileLogAppender : public LogAppender {
+friend class Logger;
 public:
 
     typedef std::shared_ptr<FileLogAppender> ptr;
