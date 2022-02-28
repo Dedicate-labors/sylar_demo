@@ -12,6 +12,7 @@
 #include<map>
 #include "singleton.h"
 #include "util.h"
+#include "thread.h"
 
 /*
 params: 接受logger指针和level, 构造默认LogEvent以及LogEventWrap
@@ -130,6 +131,7 @@ private:
 
 
 //日志格式器: 必须传入符合规则的pattern并对其解析(init()函数)，最后保存在m_items对象中
+//formatter生成后不会修改，只可能被覆盖，所以不需要加锁
 class LogFormatter {
 public:
     typedef std::shared_ptr<LogFormatter> ptr;
@@ -158,7 +160,8 @@ private:
 class  LogAppender {
 friend class Logger;
 public:
-    typedef std::shared_ptr<LogAppender> ptr; 
+    typedef std::shared_ptr<LogAppender> ptr;
+    typedef Mutex MutexType;
     virtual ~LogAppender() {}
     LogAppender(){ m_level = LogLevel::DEBUG; }
 
@@ -167,13 +170,14 @@ public:
 
     void setFormatter(LogFormatter::ptr val);
     void setFormatter(const std::string& fmt);
-    LogFormatter::ptr getFormatter() const { return m_formatter; }
+    LogFormatter::ptr getFormatter();
     void setLevel(LogLevel::Level level) { m_level = level; }
     LogLevel::Level getLevel() { return  m_level; }
 
 protected:
     LogLevel::Level m_level;
     bool m_hasFormatter = false;  // 判断appender是否具备自己的fmt，logger给的默认fmt不算入
+    MutexType m_mutex;
     LogFormatter::ptr m_formatter;
 };
 
@@ -182,6 +186,7 @@ class Logger: public std::enable_shared_from_this<Logger> {
 friend class LoggerManager;
 public:
     typedef std::shared_ptr<Logger> ptr;
+    typedef Mutex MutexType;
 
     Logger(const std::string& name = "root");
     void log(LogLevel::Level level, LogEvent::ptr event);
@@ -205,10 +210,11 @@ public:
     std::string toYamlString();
 private:
     std::string m_name;                         //日志名称
-    LogLevel::Level m_level;  //日志级别
+    LogLevel::Level m_level;                    //日志级别
+    MutexType m_mutex;
     std::list<LogAppender::ptr>  m_appenders;   //Appender集合
     LogFormatter::ptr m_formatter;              //不使用Appender的默认情况
-    Logger::ptr m_root;
+    Logger::ptr m_root;                         // 备用logger
 };
 
 
@@ -242,12 +248,14 @@ private:
 // LoggerManager注意是单例
 class LoggerManager {
 public:
+    typedef Mutex MutexType;
     LoggerManager();
     Logger::ptr getRoot() const { return m_root; }
     Logger::ptr getLogger(const std::string& name);
     std::string toYamlString();
     void init();
 private:
+    MutexType m_mutex;
     std::map<std::string, Logger::ptr> m_loggers;
     Logger::ptr m_root;
 };

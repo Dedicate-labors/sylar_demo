@@ -17,21 +17,31 @@ set(LIB_SRC
     sylar/log.cpp
     sylar/util.cpp
     sylar/config.cpp
+    sylar/thread.cpp
     )
 
 add_library(sylar SHARED ${LIB_SRC})  # 生成动态库
 force_redefine_file_macro_for_sources(sylar)
-find_library(YAMLCPP yaml-cpp)
+set(LIB_LIB
+    sylar
+    pthread
+    yaml-cpp
+    )
 
 add_executable(test_log ${CMAKE_SOURCE_DIR}/tests/test.cpp)  # 生成可执行文件test_log
 add_dependencies(test_log sylar)
 force_redefine_file_macro_for_sources(test_log)
-target_link_libraries(test_log sylar ${YAMLCPP})  # 连接动态库
+target_link_libraries(test_log sylar ${LIB_LIB})  # 连接动态库
 
 add_executable(test_config ${CMAKE_SOURCE_DIR}/tests/test_config.cpp)  # 生成可执行文件test_config
 add_dependencies(test_config sylar)
 force_redefine_file_macro_for_sources(test_config)
-target_link_libraries(test_config sylar ${YAMLCPP})  # 连接动态库
+target_link_libraries(test_config sylar ${LIB_LIB})  # 连接动态库
+
+add_executable(test_thread ${CMAKE_SOURCE_DIR}/tests/test_thread.cpp)  # 生成可执行文件test_config
+add_dependencies(test_thread sylar)
+force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_thread sylar ${LIB_LIB})  # 连接动态库
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)

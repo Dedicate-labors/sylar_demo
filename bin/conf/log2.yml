@@ -1,0 +1,6 @@
+logs:
+    - name: root
+      level: INFO
+      appenders:
+          - type: FileLogAppender
+            file: mutex.txt
