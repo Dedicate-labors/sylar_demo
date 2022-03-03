@@ -242,6 +242,7 @@ public:
 private:
     std::string m_filename;
     std::ofstream m_filestream;
+    uint64_t m_lastTime = 0;  // 没隔几秒重新打开文件
 };
 
 

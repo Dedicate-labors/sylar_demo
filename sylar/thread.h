@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdint.h>
+#include <atomic>
 
 namespace sylar {
 
@@ -127,7 +128,7 @@ public:
 
 private:
     T& m_mutex;
-    bool m_locked;
+    bool m_locked = false;
 };
 
 
@@ -214,6 +215,7 @@ public:
 };
 
 
+// 小心线程饿死
 class Spinlock {
 public:
     typedef ScopedLockImpl<Spinlock> Lock;
@@ -236,6 +238,29 @@ public:
 
 private:
     pthread_spinlock_t m_mutex;
+};
+
+
+// SpinLock和CASLock底层应该是差不多的，所以性能不会提升多少
+class CASLock {
+public:
+    typedef ScopedLockImpl<CASLock> Lock;
+
+    CASLock():m_mutex(ATOMIC_FLAG_INIT) { }
+
+    ~CASLock() { }
+
+    void lock() {
+        // while(std::atomic_flag_test_and_set_explicit(&m_mutex, std::memory_order_acquire))
+        while(m_mutex.test_and_set(std::memory_order_acquire));
+    }
+
+    void unlock() {
+        // std::atomic_flag_clear_explicit(&m_mutex, std::memory_order_release);
+        m_mutex.clear(std::memory_order_release);
+    }
+private:
+    volatile std::atomic_flag m_mutex;
 };
 
 

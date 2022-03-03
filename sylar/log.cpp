@@ -227,7 +227,8 @@ Logger::Logger(const std::string& name)
 ,m_level(LogLevel::DEBUG)
 {
     // 这里就是给m_formatter设定一个默认值
-    m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"));
+    // m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"));
+    m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%n%f:%l%n%m%n"));
 
     if(name == "root" && m_appenders.empty()) {
         // root logger 的appnder加的就是logger默认的fmt，所以算入appnder的fmt
@@ -395,6 +396,13 @@ m_filename(filename)
 
 void FileLogAppender::log(Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) {
     if (level >= m_level) {
+        // 每隔段时间重新打开文件，避免文件被删除后，代码无法感知导致的问题
+        uint64_t now = time(0);
+        if(now != m_lastTime) {
+            reopen();
+            // 即使出现条件竞争，对重新打开文件这个操作影响不大
+            m_lastTime = now;
+        }
         MutexType::Lock lock(m_mutex);
         m_filestream << m_formatter->format(logger, level, event);
     }
@@ -743,7 +751,7 @@ sylar::ConfigVar<std::set<LogDefine>>::ptr g_log_defines =
 // 增加回调函数，表面上是比较std::set<LogDefine>的不同，实际上涉及logger的创建
 struct LogIniter {
     LogIniter() {
-        g_log_defines->addListener(0xF1E231, [](const std::set<LogDefine>& old_value, 
+        g_log_defines->addListener([](const std::set<LogDefine>& old_value, 
                 const std::set<LogDefine>& new_value){
             SYLAR_LOG_INFO(SYLAR_LOG_ROOT()) << "on_logger_conf_changed";
             for(auto& i : new_value) {
