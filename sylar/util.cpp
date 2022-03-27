@@ -1,16 +1,18 @@
 #include "util.h"
 #include "log.h"
+#include "fiber.h"
+#include <execinfo.h>
 
 namespace sylar {
 
-sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
+Logger::ptr g_logger = SYLAR_LOG_NAME("system");
 
 pid_t GetThreadId() {
     return syscall(SYS_gettid);
 }
 
 uint32_t GetFiberId() {
-    return 0;
+    return Fiber::GetFiberId();
 }
 
 void Backtrace(std::vector<std::string>& bt, int size, int skip) {

@@ -54,6 +54,7 @@ return: LogEventWrap管理的LogEvent的format方法(fmt, 不定参数)
 #define SYLAR_LOG_FMT_ERROR(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::ERROR, fmt, __VA_ARGS__)
 #define SYLAR_LOG_FMT_FATAL(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::FATAL, fmt, __VA_ARGS__)
 
+// 创建受管理的logger
 #define SYLAR_LOG_ROOT() sylar::LoggerMgr::GetInstance().getRoot()
 #define SYLAR_LOG_NAME(name) sylar::LoggerMgr::GetInstance().getLogger(name)
 
