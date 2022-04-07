@@ -25,7 +25,7 @@ return: LogEventWrap管理的LogEvent的stringstream m_ss
     if(logger->getLevel() <= level) \
         sylar::LogEventWrap(sylar::LogEvent::ptr(new sylar::LogEvent(logger, level,\
                             __FILE__, __LINE__, 0, sylar::GetThreadId(),\
-                            sylar::GetFiberId(), time(0)))).getSs()
+                            sylar::GetFiberId(), time(0), sylar::Thread::GetName()))).getSs()
 
 #define SYLAR_LOG_DEBUG(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::DEBUG)
 #define SYLAR_LOG_INFO(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::INFO)
@@ -46,7 +46,7 @@ return: LogEventWrap管理的LogEvent的format方法(fmt, 不定参数)
     if(logger->getLevel() <= level) \
         sylar::LogEventWrap(sylar::LogEvent::ptr(new sylar::LogEvent(logger, level, \
                             __FILE__, __LINE__, 0, sylar::GetThreadId(),\
-                            sylar::GetFiberId(), time(0)))).getEvent()->format(fmt, __VA_ARGS__)
+                            sylar::GetFiberId(), time(0), sylar::Thread::GetName()))).getEvent()->format(fmt, __VA_ARGS__)
 
 #define SYLAR_LOG_FMT_DEBUG(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::DEBUG, fmt, __VA_ARGS__)
 #define SYLAR_LOG_FMT_INFO(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::INFO, fmt, __VA_ARGS__)
@@ -88,7 +88,8 @@ public:
     typedef std::shared_ptr<LogEvent> ptr; 
     LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level,
             const char * file, int32_t line, uint32_t elapse,
-            pid_t thread_id, uint32_t fiber_id, uint64_t time);
+            pid_t thread_id, uint32_t fiber_id, uint64_t time,
+            const std::string& thread_name);
     ~LogEvent();
     const char * getFile() const { return m_file; }
     int32_t getLine() const { return m_line; }
@@ -99,6 +100,7 @@ public:
     const std::string getContent() const { return m_ss.str(); }
     std::shared_ptr<Logger> getLogger() const { return m_logger; }
     LogLevel::Level getLevel() const { return m_level; }
+    std::string getThreadName() const { return m_threadName; }
 
     std::stringstream& getSs() { return m_ss; }
     void format(const char * fmt, ...);
@@ -113,6 +115,7 @@ private:
     std::stringstream m_ss;             //日志内容
     std::shared_ptr<Logger> m_logger;   //打印日志的logger指针
     LogLevel::Level m_level;            //日志level
+    std::string m_threadName;           //线程名称
 };
 
 

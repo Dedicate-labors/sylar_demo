@@ -1,0 +1,239 @@
+#ifndef __SYLAR_SCHEDULER_H__
+#define __SYLAR_SCHEDULER_H__
+
+#include <memory>
+#include <vector>
+#include <list>
+#include <iostream>
+#include "fiber.h"
+#include "thread.h"
+#include "boost/noncopyable.hpp"
+
+namespace sylar {
+
+class Scheduler {
+public:
+    typedef std::shared_ptr<Scheduler> ptr;
+    typedef Mutex MutexType;
+
+    /**
+     * @brief 构造函数
+     * @param[in] threads 线程数量
+     * @param[in] use_caller 是否使用当前调用线程
+     * @param[in] name 协程调度器名称
+     */
+    Scheduler(size_t threads = 1, bool use_caller = true, const std::string& name = "");
+    virtual ~Scheduler();
+
+    /**
+     * @brief 返回协程调度器名称
+     */
+    const std::string& getName() const { return m_name; }
+
+    /**
+     * @brief 返回当前协程调度器
+     */
+    static Scheduler* GetThis();
+
+    /**
+     * @brief 返回当前协程调度器的调度协程
+     */
+    static Fiber* GetMainFiber();
+
+    /**
+     * @brief 启动协程调度器
+     */
+    void start();
+
+    /**
+     * @brief 停止协程调度器
+     */
+    void stop();
+
+    /**
+     * @brief 调度协程
+     * @param[in] fc 协程或函数
+     * @param[in] threadId 协程执行的线程id,-1标识任意线程
+     */
+    template<class FiberOrCb>
+    void schedule(FiberOrCb fc, int threadId = -1) {
+        bool need_tickle = false;
+        {
+            MutexType::Lock lock(m_mutex);
+            need_tickle = scheduleNoLock(fc, threadId);
+        }
+
+        if(need_tickle) {
+            tickle();
+        }
+    }
+
+    /**
+     * @brief 批量调度协程
+     * @param[in] begin 协程数组的开始
+     * @param[in] end 协程数组的结束
+     */
+    template<class InputIterator>
+    void schedule(InputIterator begin, InputIterator end) {
+        bool need_tickle = false;
+        {
+            MutexType::Lock lock(m_mutex);
+            while(begin != end) {
+                // 只要里面有一个返回true即可
+                need_tickle = scheduleNoLock(&*begin, -1) || need_tickle;
+                ++begin;
+            }
+        }
+        if(need_tickle) {
+            tickle();
+        }
+    }
+
+    /**
+    * @brief 当前线程id加入所在调度器中
+    */
+    void switchTo(int thread = -1);
+    std::ostream& dump(std::ostream& os);
+protected:
+    /**
+     * @brief 通知协程调度器有任务了
+     */
+    virtual void tickle();
+    /**
+     * @brief 协程调度函数
+     */
+    void run();
+    /**
+     * @brief 返回是否可以停止
+     */
+    virtual bool stopping();
+    /**
+     * @brief 协程无任务可调度时执行idle协程
+     */
+    virtual void idle();
+    /**
+     * @brief 设置当前的协程调度器
+     */
+    void SetThis();
+    /**
+     * @brief 是否有空闲线程
+     */
+    bool hasIdleThreads() { return m_idleThreadCount > 0;}
+private:
+    /**
+     * @brief 协程调度启动(无锁)
+     * @post 返回true时只有一个FiberOrCb，false代表m_fibers有多个FiberOrCb
+     */
+    template<class FiberOrCb>
+    bool scheduleNoLock(FiberOrCb fc, int threadId) {
+        bool need_tickle = m_fibers.empty();
+        FiberAndThread ft(fc, threadId);
+        if(ft.fiber || ft.cb) {
+            m_fibers.push_back(ft);
+        }
+        return need_tickle;
+    }
+private:
+    /**
+     * @brief 协程/函数/线程组
+     */
+    struct FiberAndThread {
+        /// 协程
+        Fiber::ptr fiber;
+        /// 协程执行函数
+        std::function<void()>  cb;
+        pid_t threadId;
+        /**
+         * @brief 构造函数
+         * @param[in] f 协程
+         * @param[in] thr 线程id
+         */
+        FiberAndThread(Fiber::ptr f, pid_t thrId)
+        :fiber(f), threadId(thrId) { }
+
+        /**
+         * @brief 构造函数，但不会增加引用计数
+         * @param[in] f 协程指针
+         * @param[in] thr 线程id
+         * @post *f = nullptr
+         */
+        FiberAndThread(Fiber::ptr* f, int thrId) 
+        :threadId(thrId) {
+            fiber.swap(*f);
+        }
+
+        /**
+         * @brief 构造函数
+         * @param[in] f 协程执行函数
+         * @param[in] thr 线程id
+         */
+        FiberAndThread(std::function<void()> f, int thrId) 
+        :threadId(thrId), cb(f) {
+        }
+
+        /**
+         * @brief 构造函数
+         * @param[in] f 协程执行函数指针
+         * @param[in] thr 线程id
+         * @post *f = nullptr
+         */
+        FiberAndThread(std::function<void()>* f, int thrId)
+            :threadId(thrId) {
+            cb.swap(*f);
+        }
+
+        /**
+         * @brief 无参构造函数
+         */
+        FiberAndThread():threadId(-1) {
+        }
+
+        /**
+         * @brief 重置数据
+         */
+        void reset() {
+            fiber = nullptr;
+            cb = nullptr;
+            threadId = -1;
+        }
+    };
+private:
+    /// Mutex
+    MutexType m_mutex;
+    /// 线程池
+    std::vector<Thread::ptr> m_threads;
+    /// 待执行的协程队列，schedule进行装载
+    std::list<FiberAndThread> m_fibers;
+    /// use_caller为true时有效, 调度协程
+    Fiber::ptr m_rootFiber;
+    /// 协程调度器名称
+    std::string m_name;
+protected:
+    /// 线程id数组
+    std::vector<pid_t> m_threadIds;
+    /// 线程数量
+    size_t m_threadCount = 0;
+    /// 工作线程数量
+    std::atomic<size_t> m_activeThreadCount = {0};
+    /// 空闲线程数量
+    std::atomic<size_t> m_idleThreadCount = {0};
+    /// 是否正在停止
+    bool m_stopping = true;
+    /// 是否自动停止
+    bool m_autoStop = false;
+    /// 主线程id(use_caller)
+    pid_t m_rootThread = 0;
+};
+
+class SchedulerSwitcher : public boost::noncopyable {
+public:
+    SchedulerSwitcher(Scheduler* target = nullptr);
+    ~SchedulerSwitcher();
+private:
+    Scheduler* m_caller;
+};
+
+
+}
+
+#endif

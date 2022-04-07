@@ -8,5 +8,6 @@
 #include "thread.h"
 #include "util.h"
 #include "fiber.h"
+#include "scheduler.h"
 
 #endif

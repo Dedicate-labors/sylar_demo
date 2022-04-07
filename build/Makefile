@@ -114,6 +114,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named test_scheduler
+
+# Build rule for target.
+test_scheduler: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_scheduler
+.PHONY : test_scheduler
+
+# fast build rule for target.
+test_scheduler/fast:
+	$(MAKE) -f CMakeFiles/test_scheduler.dir/build.make CMakeFiles/test_scheduler.dir/build
+.PHONY : test_scheduler/fast
+
+#=============================================================================
 # Target rules for targets named test_log
 
 # Build rule for target.
@@ -272,6 +285,33 @@ sylar/log.cpp.s:
 	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/log.cpp.s
 .PHONY : sylar/log.cpp.s
 
+sylar/scheduler.o: sylar/scheduler.cpp.o
+
+.PHONY : sylar/scheduler.o
+
+# target to build an object file
+sylar/scheduler.cpp.o:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/scheduler.cpp.o
+.PHONY : sylar/scheduler.cpp.o
+
+sylar/scheduler.i: sylar/scheduler.cpp.i
+
+.PHONY : sylar/scheduler.i
+
+# target to preprocess a source file
+sylar/scheduler.cpp.i:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/scheduler.cpp.i
+.PHONY : sylar/scheduler.cpp.i
+
+sylar/scheduler.s: sylar/scheduler.cpp.s
+
+.PHONY : sylar/scheduler.s
+
+# target to generate assembly for a file
+sylar/scheduler.cpp.s:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/scheduler.cpp.s
+.PHONY : sylar/scheduler.cpp.s
+
 sylar/thread.o: sylar/thread.cpp.o
 
 .PHONY : sylar/thread.o
@@ -407,6 +447,33 @@ tests/test_fiber.cpp.s:
 	$(MAKE) -f CMakeFiles/test_fiber.dir/build.make CMakeFiles/test_fiber.dir/tests/test_fiber.cpp.s
 .PHONY : tests/test_fiber.cpp.s
 
+tests/test_scheduler.o: tests/test_scheduler.cpp.o
+
+.PHONY : tests/test_scheduler.o
+
+# target to build an object file
+tests/test_scheduler.cpp.o:
+	$(MAKE) -f CMakeFiles/test_scheduler.dir/build.make CMakeFiles/test_scheduler.dir/tests/test_scheduler.cpp.o
+.PHONY : tests/test_scheduler.cpp.o
+
+tests/test_scheduler.i: tests/test_scheduler.cpp.i
+
+.PHONY : tests/test_scheduler.i
+
+# target to preprocess a source file
+tests/test_scheduler.cpp.i:
+	$(MAKE) -f CMakeFiles/test_scheduler.dir/build.make CMakeFiles/test_scheduler.dir/tests/test_scheduler.cpp.i
+.PHONY : tests/test_scheduler.cpp.i
+
+tests/test_scheduler.s: tests/test_scheduler.cpp.s
+
+.PHONY : tests/test_scheduler.s
+
+# target to generate assembly for a file
+tests/test_scheduler.cpp.s:
+	$(MAKE) -f CMakeFiles/test_scheduler.dir/build.make CMakeFiles/test_scheduler.dir/tests/test_scheduler.cpp.s
+.PHONY : tests/test_scheduler.cpp.s
+
 tests/test_thread.o: tests/test_thread.cpp.o
 
 .PHONY : tests/test_thread.o
@@ -469,6 +536,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... test_scheduler"
 	@echo "... test_log"
 	@echo "... sylar"
 	@echo "... test_config"
@@ -484,6 +552,9 @@ help:
 	@echo "... sylar/log.o"
 	@echo "... sylar/log.i"
 	@echo "... sylar/log.s"
+	@echo "... sylar/scheduler.o"
+	@echo "... sylar/scheduler.i"
+	@echo "... sylar/scheduler.s"
 	@echo "... sylar/thread.o"
 	@echo "... sylar/thread.i"
 	@echo "... sylar/thread.s"
@@ -499,6 +570,9 @@ help:
 	@echo "... tests/test_fiber.o"
 	@echo "... tests/test_fiber.i"
 	@echo "... tests/test_fiber.s"
+	@echo "... tests/test_scheduler.o"
+	@echo "... tests/test_scheduler.i"
+	@echo "... tests/test_scheduler.s"
 	@echo "... tests/test_thread.o"
 	@echo "... tests/test_thread.i"
 	@echo "... tests/test_thread.s"

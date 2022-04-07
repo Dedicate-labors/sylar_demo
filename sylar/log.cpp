@@ -12,7 +12,8 @@ namespace sylar {
 
 LogEvent::LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level,
                    const char * file, int32_t line, uint32_t elapse,
-                   pid_t thread_id, uint32_t fiber_id, uint64_t time)
+                   pid_t thread_id, uint32_t fiber_id, uint64_t time,
+                   const std::string& thread_name)
 :m_file(file)
 ,m_line(line)
 ,m_elapse(elapse)
@@ -21,6 +22,7 @@ LogEvent::LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level,
 ,m_time(time)
 ,m_logger(logger)
 ,m_level(level)
+,m_threadName(thread_name)
 {
 
 }
@@ -159,6 +161,15 @@ public:
 };
 
 
+class ThreadNameFormatItem: public LogFormatter::FormatItem{
+public:
+    ThreadNameFormatItem(const std::string & fmt = "") {}
+    void format(std::ostream& os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {
+        os << event->getThreadName();
+    }
+};
+
+
 class NewLineFormatItem: public LogFormatter::FormatItem{
 public:
     NewLineFormatItem(const std::string & fmt = "") {}
@@ -227,9 +238,8 @@ Logger::Logger(const std::string& name)
 ,m_level(LogLevel::DEBUG)
 {
     // 这里就是给m_formatter设定一个默认值
-    // m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"));
-    m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%n%f:%l%n%m%n"));
-
+    m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"));
+    // m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%n%f:%l%n%m%n"));
     if(name == "root" && m_appenders.empty()) {
         // root logger 的appnder加的就是logger默认的fmt，所以算入appnder的fmt
         this->addAppender(LogAppender::ptr(new StdoutLogAppender));
@@ -575,7 +585,7 @@ void LogFormatter::init()
     XX(l, LineFormatItem)           //l:行号
     XX(T, TabFormatItem)            //T:Tab
     XX(F, FiberIdFormatItem)        //F:协程id
-    // XX(N, ThreadNameFormatItem)     //N:线程名称
+    XX(N, ThreadNameFormatItem)     //N:线程名称
 #undef XX
     };
     for(auto& i : vec) {
