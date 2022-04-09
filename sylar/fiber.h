@@ -71,28 +71,27 @@ public:
     void reset(std::function<void()> cb, bool use_caller = false);
 
     /**
-     * @brief 将所在协程切换到运行状态
+     * @brief 将当前协程切换到运行状态
      * @pre getState() != EXEC
      * @post getState() = EXEC
      */
     void swapIn();
 
     /**
-     * @brief 将所在协程切换到后台
-     * @post 回到当前线程主协程
+     * @brief 将当前协程切换到后台
      */
     void swapOut();
 
     /**
-     * @brief 将所在协程切换到运行状态
-     * @pre getState() != EXEC
-     * @post getState() = EXEC
+     * @brief 将当前线程切换到执行状态
+     * @pre 执行的为当前线程的主协程
      */
     void call();
 
     /**
-     * @brief 将当前协程切换到后台
-     * @post 返回到线程调度协程
+     * @brief 将当前线程切换到后台
+     * @pre 执行的为该协程
+     * @post 返回到线程的主协程
      */
     void back();
 
@@ -106,7 +105,6 @@ public:
      */
     State getState() const { return m_state;}
 public:
-    // 静态函数主要是全局协程的调度
 
     /**
      * @brief 设置当前线程的运行协程
@@ -138,13 +136,13 @@ public:
 
     /**
      * @brief 协程执行函数
-     * @post 执行完成返回到线程调度协程
+     * @post 执行完成返回到线程主协程
      */
     static void MainFunc();
 
     /**
      * @brief 协程执行函数
-     * @post 执行完成返回到线程主协程
+     * @post 执行完成返回到线程调度协程
      */
     static void CallerMainFunc();
 
@@ -153,18 +151,19 @@ public:
      */
     static uint64_t GetFiberId();
 private:
-    /// 协程运行栈指针
-    void* m_stack = nullptr;
+    /// 协程id
+    uint64_t m_id = 0;
     /// 协程运行栈大小
     uint32_t m_stacksize = 0;
-    /// 协程运行函数
-    std::function<void()> m_cb;
     /// 协程状态
     State m_state = INIT;
     /// 协程上下文
     ucontext_t m_ctx;
-    /// 协程id
-    uint64_t m_id = 0;
+    /// 协程运行栈指针
+    void* m_stack = nullptr;
+    /// 协程运行函数
+    std::function<void()> m_cb;
+    bool m_use_caller = false;
 };
 
 }

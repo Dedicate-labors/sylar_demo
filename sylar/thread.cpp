@@ -57,6 +57,7 @@ void Thread::SetName(const std::string& name) {
 // 为什么要绕一圈进行执行？类似装饰器的效果，进行额外处理
 // 并且只有这样才能获取到子线程的threadId
 void* Thread::run(void* arg) {
+    // 下面只是类型转换
     Thread* thread = (Thread*)arg;
     t_thread = thread;
     t_thread_name = thread->m_name;
