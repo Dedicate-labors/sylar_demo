@@ -20,6 +20,8 @@ set(LIB_SRC
     sylar/thread.cpp
     sylar/fiber.cpp
     sylar/scheduler.cpp
+    sylar/iomanager.cpp
+    sylar/timer.cpp
     )
 
 add_library(sylar SHARED ${LIB_SRC})  # 生成动态库
@@ -59,6 +61,11 @@ add_executable(test_scheduler tests/test_scheduler.cpp)  # 生成可执行文件
 add_dependencies(test_scheduler sylar)
 # force_redefine_file_macro_for_sources(test_thread)
 target_link_libraries(test_scheduler ${LIB_LIB})  # 连接动态库
+
+add_executable(test_iomanager tests/test_iomanager.cpp)  # 生成可执行文件test_iomanager
+add_dependencies(test_iomanager sylar)
+# force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_iomanager ${LIB_LIB})  # 连接动态库
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)

@@ -13,13 +13,17 @@
 
 namespace sylar
 {
-    pid_t GetThreadId();
+// 线程/协程 id相关
+pid_t GetThreadId();
+uint32_t GetFiberId();
 
-    uint32_t GetFiberId();
+// 栈信息
+void Backtrace(std::vector<std::string>& bt, int size = 64, int skip = 1);
+std::string BacktraceToString(int size = 64, int skip = 2, const std::string& prefix="");
 
-    void Backtrace(std::vector<std::string>& bt, int size = 64, int skip = 1);
-
-    std::string BacktraceToString(int size = 64, int skip = 2, const std::string& prefix="");
+// 时间相关
+uint64_t GetCurrentMS();   // 毫秒
+uint64_t GetCurrentUS();   // 微秒
 }
 
 #endif

@@ -70,11 +70,11 @@ void Scheduler::start() {
     }
     lock.unlock();
 
-    if(m_rootFiber) {
-       //m_rootFiber->swapIn();
-       m_rootFiber->call();
-       SYLAR_LOG_INFO(g_logger) << "call out " << m_rootFiber->getState();
-    }
+    // if(m_rootFiber) {
+    //    //m_rootFiber->swapIn();
+    //    m_rootFiber->call();
+    //    SYLAR_LOG_INFO(g_logger) << "call out " << m_rootFiber->getState();
+    // }
 }
 
 void Scheduler::stop() {
@@ -120,6 +120,7 @@ void Scheduler::stop() {
     std::vector<Thread::ptr> thrs;
     {
         MutexType::Lock lock(m_mutex);
+        // 也是为了清空原本的m_threads
         thrs.swap(m_threads);
     }
 
@@ -253,7 +254,7 @@ bool Scheduler::stopping() {
 
 void Scheduler::idle() {
     SYLAR_LOG_INFO(g_logger) << "idle";
-    if(!stopping()) {
+    while(!stopping()) {
         sylar::Fiber::YieldToHold();
     }
 }
