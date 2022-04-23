@@ -1,7 +1,7 @@
 #include "scheduler.h"
 #include "log.h"
 #include "macro.h"
-// #include "hook.h"
+#include "hook.h"
 
 namespace sylar {
 
@@ -136,7 +136,7 @@ void Scheduler::setThis() {
 // 主线程中的协程或者other线程都会执行run函数
 void Scheduler::run() {
     SYLAR_LOG_DEBUG(g_logger) << m_name << " run";
-    // set_hook_enable(true);
+    set_hook_enable(true);
     setThis();
     if(sylar::GetThreadId() != m_rootThread) {
         // other线程上，将当前运行协程赋值给t_scheduler_fiber
@@ -216,7 +216,7 @@ void Scheduler::run() {
             } else if(cb_fiber->getState() == Fiber::EXCEPT
                     || cb_fiber->getState() == Fiber::TERM) {
                 cb_fiber->reset(nullptr);
-            } else {//if(cb_fiber->getState() != Fiber::TERM) {
+            } else {
                 cb_fiber->m_state = Fiber::HOLD;
                 cb_fiber.reset();
             }

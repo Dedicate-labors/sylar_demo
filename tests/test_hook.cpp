@@ -1,0 +1,65 @@
+#include "../sylar/hook.h"
+#include "../sylar/iomanager.h"
+#include "../sylar/log.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <string.h>
+#include <string>
+
+sylar::Logger::ptr g_logger = SYLAR_LOG_ROOT();
+
+// 目的是两个sleep在同一个thread内要同时进行，原理其实是从sleep变成了定时器
+void test_sleep() {
+    sylar::IOManager iom;
+    iom.schedule([](){
+        sleep(2);
+        SYLAR_LOG_INFO(g_logger) << "sleep 2";
+    });
+
+    iom.schedule([](){
+        sleep(3);
+        SYLAR_LOG_INFO(g_logger) << "sleep 3";
+    });
+    SYLAR_LOG_INFO(g_logger) << "test_sleep  end";
+}
+
+// 使用hook的函数
+void test_sock() {
+    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(80);
+    inet_pton(AF_INET, "183.131.206.140", &addr.sin_addr.s_addr);
+
+    SYLAR_LOG_INFO(g_logger) << "begin connect";
+    int rt = connect(sock_fd, (const sockaddr *)&addr, sizeof(addr));
+    SYLAR_LOG_INFO(g_logger) << "connect rt=" << rt << " errno=" << errno;
+    if(rt) return;
+
+    const char data[] = "GET / HTTP/1.0\r\n\r\n";
+    rt = send(sock_fd, data, sizeof(data), 0);
+    SYLAR_LOG_INFO(g_logger) << "send rt=" << rt << " errno=" << errno;
+    if(rt <= 0) return;
+
+    std::string buff;
+    buff.resize(4096);
+
+    rt = recv(sock_fd, &buff[0], buff.size(), 0);
+    SYLAR_LOG_INFO(g_logger) << "recv rt=" << rt << " errno=" << errno;
+    if(rt <= 0) return;
+
+    buff.resize(rt);
+    SYLAR_LOG_INFO(g_logger) << buff;
+    return;
+}
+
+int main(int argc, char ** argv) {
+    // test_sleep();
+    sylar::IOManager iom;
+    iom.schedule(test_sock);
+    return 0;
+}

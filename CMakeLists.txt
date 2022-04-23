@@ -18,10 +18,13 @@ set(LIB_SRC
     sylar/util.cpp
     sylar/config.cpp
     sylar/thread.cpp
+    sylar/mutex.cpp
     sylar/fiber.cpp
     sylar/scheduler.cpp
     sylar/iomanager.cpp
     sylar/timer.cpp
+    sylar/hook.cpp
+    sylar/fd_manager.cpp
     )
 
 add_library(sylar SHARED ${LIB_SRC})  # 生成动态库
@@ -30,6 +33,7 @@ set(LIB_LIB
     sylar
     pthread
     yaml-cpp
+    dl
     )
 
 add_executable(test_log ${CMAKE_SOURCE_DIR}/tests/test.cpp)  # 生成可执行文件test_log
@@ -66,6 +70,11 @@ add_executable(test_iomanager tests/test_iomanager.cpp)  # 生成可执行文件
 add_dependencies(test_iomanager sylar)
 # force_redefine_file_macro_for_sources(test_thread)
 target_link_libraries(test_iomanager ${LIB_LIB})  # 连接动态库
+
+add_executable(test_hook tests/test_hook.cpp)  # test_hook
+add_dependencies(test_hook sylar)
+# force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_hook ${LIB_LIB})  # 连接动态库
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
