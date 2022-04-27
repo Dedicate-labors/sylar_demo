@@ -266,7 +266,7 @@ public:
             :ConfigVarBase(name, description)
             ,m_val(default_value) {}
     std::string toString() override {
-        try 
+        try
         {
             // return boost::lexical_cast<std::string>(m_val);
             RWMutexType::ReadLock lock(m_mutex);

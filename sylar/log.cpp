@@ -756,7 +756,7 @@ public:
 };
 
 sylar::ConfigVar<std::set<LogDefine>>::ptr g_log_defines = 
-    sylar::Config::Lookup("logs", std::set<LogDefine>(), " logs config");
+    sylar::Config::Lookup("logs", std::set<LogDefine>(), "logs config");
 
 // 增加回调函数，表面上是比较std::set<LogDefine>的不同，实际上涉及logger的创建
 struct LogIniter {
