@@ -114,6 +114,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named test_client
+
+# Build rule for target.
+test_client: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_client
+.PHONY : test_client
+
+# fast build rule for target.
+test_client/fast:
+	$(MAKE) -f CMakeFiles/test_client.dir/build.make CMakeFiles/test_client.dir/build
+.PHONY : test_client/fast
+
+#=============================================================================
 # Target rules for targets named test_address
 
 # Build rule for target.
@@ -138,6 +151,19 @@ test_hook: cmake_check_build_system
 test_hook/fast:
 	$(MAKE) -f CMakeFiles/test_hook.dir/build.make CMakeFiles/test_hook.dir/build
 .PHONY : test_hook/fast
+
+#=============================================================================
+# Target rules for targets named test_server
+
+# Build rule for target.
+test_server: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_server
+.PHONY : test_server
+
+# fast build rule for target.
+test_server/fast:
+	$(MAKE) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/build
+.PHONY : test_server/fast
 
 #=============================================================================
 # Target rules for targets named test_iomanager
@@ -203,6 +229,19 @@ test_config: cmake_check_build_system
 test_config/fast:
 	$(MAKE) -f CMakeFiles/test_config.dir/build.make CMakeFiles/test_config.dir/build
 .PHONY : test_config/fast
+
+#=============================================================================
+# Target rules for targets named test_bytearray
+
+# Build rule for target.
+test_bytearray: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_bytearray
+.PHONY : test_bytearray
+
+# fast build rule for target.
+test_bytearray/fast:
+	$(MAKE) -f CMakeFiles/test_bytearray.dir/build.make CMakeFiles/test_bytearray.dir/build
+.PHONY : test_bytearray/fast
 
 #=============================================================================
 # Target rules for targets named test_thread
@@ -282,6 +321,33 @@ sylar/address.s: sylar/address.cpp.s
 sylar/address.cpp.s:
 	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/address.cpp.s
 .PHONY : sylar/address.cpp.s
+
+sylar/bytearray.o: sylar/bytearray.cpp.o
+
+.PHONY : sylar/bytearray.o
+
+# target to build an object file
+sylar/bytearray.cpp.o:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/bytearray.cpp.o
+.PHONY : sylar/bytearray.cpp.o
+
+sylar/bytearray.i: sylar/bytearray.cpp.i
+
+.PHONY : sylar/bytearray.i
+
+# target to preprocess a source file
+sylar/bytearray.cpp.i:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/bytearray.cpp.i
+.PHONY : sylar/bytearray.cpp.i
+
+sylar/bytearray.s: sylar/bytearray.cpp.s
+
+.PHONY : sylar/bytearray.s
+
+# target to generate assembly for a file
+sylar/bytearray.cpp.s:
+	$(MAKE) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/bytearray.cpp.s
+.PHONY : sylar/bytearray.cpp.s
 
 sylar/config.o: sylar/config.cpp.o
 
@@ -661,6 +727,60 @@ tests/test_address.cpp.s:
 	$(MAKE) -f CMakeFiles/test_address.dir/build.make CMakeFiles/test_address.dir/tests/test_address.cpp.s
 .PHONY : tests/test_address.cpp.s
 
+tests/test_bytearray.o: tests/test_bytearray.cpp.o
+
+.PHONY : tests/test_bytearray.o
+
+# target to build an object file
+tests/test_bytearray.cpp.o:
+	$(MAKE) -f CMakeFiles/test_bytearray.dir/build.make CMakeFiles/test_bytearray.dir/tests/test_bytearray.cpp.o
+.PHONY : tests/test_bytearray.cpp.o
+
+tests/test_bytearray.i: tests/test_bytearray.cpp.i
+
+.PHONY : tests/test_bytearray.i
+
+# target to preprocess a source file
+tests/test_bytearray.cpp.i:
+	$(MAKE) -f CMakeFiles/test_bytearray.dir/build.make CMakeFiles/test_bytearray.dir/tests/test_bytearray.cpp.i
+.PHONY : tests/test_bytearray.cpp.i
+
+tests/test_bytearray.s: tests/test_bytearray.cpp.s
+
+.PHONY : tests/test_bytearray.s
+
+# target to generate assembly for a file
+tests/test_bytearray.cpp.s:
+	$(MAKE) -f CMakeFiles/test_bytearray.dir/build.make CMakeFiles/test_bytearray.dir/tests/test_bytearray.cpp.s
+.PHONY : tests/test_bytearray.cpp.s
+
+tests/test_client.o: tests/test_client.cpp.o
+
+.PHONY : tests/test_client.o
+
+# target to build an object file
+tests/test_client.cpp.o:
+	$(MAKE) -f CMakeFiles/test_client.dir/build.make CMakeFiles/test_client.dir/tests/test_client.cpp.o
+.PHONY : tests/test_client.cpp.o
+
+tests/test_client.i: tests/test_client.cpp.i
+
+.PHONY : tests/test_client.i
+
+# target to preprocess a source file
+tests/test_client.cpp.i:
+	$(MAKE) -f CMakeFiles/test_client.dir/build.make CMakeFiles/test_client.dir/tests/test_client.cpp.i
+.PHONY : tests/test_client.cpp.i
+
+tests/test_client.s: tests/test_client.cpp.s
+
+.PHONY : tests/test_client.s
+
+# target to generate assembly for a file
+tests/test_client.cpp.s:
+	$(MAKE) -f CMakeFiles/test_client.dir/build.make CMakeFiles/test_client.dir/tests/test_client.cpp.s
+.PHONY : tests/test_client.cpp.s
+
 tests/test_config.o: tests/test_config.cpp.o
 
 .PHONY : tests/test_config.o
@@ -796,6 +916,33 @@ tests/test_scheduler.cpp.s:
 	$(MAKE) -f CMakeFiles/test_scheduler.dir/build.make CMakeFiles/test_scheduler.dir/tests/test_scheduler.cpp.s
 .PHONY : tests/test_scheduler.cpp.s
 
+tests/test_server.o: tests/test_server.cpp.o
+
+.PHONY : tests/test_server.o
+
+# target to build an object file
+tests/test_server.cpp.o:
+	$(MAKE) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/tests/test_server.cpp.o
+.PHONY : tests/test_server.cpp.o
+
+tests/test_server.i: tests/test_server.cpp.i
+
+.PHONY : tests/test_server.i
+
+# target to preprocess a source file
+tests/test_server.cpp.i:
+	$(MAKE) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/tests/test_server.cpp.i
+.PHONY : tests/test_server.cpp.i
+
+tests/test_server.s: tests/test_server.cpp.s
+
+.PHONY : tests/test_server.s
+
+# target to generate assembly for a file
+tests/test_server.cpp.s:
+	$(MAKE) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/tests/test_server.cpp.s
+.PHONY : tests/test_server.cpp.s
+
 tests/test_socket.o: tests/test_socket.cpp.o
 
 .PHONY : tests/test_socket.o
@@ -884,14 +1031,17 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... test_client"
 	@echo "... edit_cache"
 	@echo "... test_address"
 	@echo "... test_hook"
+	@echo "... test_server"
 	@echo "... test_iomanager"
 	@echo "... test_scheduler"
 	@echo "... test_log"
 	@echo "... sylar"
 	@echo "... test_config"
+	@echo "... test_bytearray"
 	@echo "... test_thread"
 	@echo "... test_util"
 	@echo "... test_socket"
@@ -899,6 +1049,9 @@ help:
 	@echo "... sylar/address.o"
 	@echo "... sylar/address.i"
 	@echo "... sylar/address.s"
+	@echo "... sylar/bytearray.o"
+	@echo "... sylar/bytearray.i"
+	@echo "... sylar/bytearray.s"
 	@echo "... sylar/config.o"
 	@echo "... sylar/config.i"
 	@echo "... sylar/config.s"
@@ -941,6 +1094,12 @@ help:
 	@echo "... tests/test_address.o"
 	@echo "... tests/test_address.i"
 	@echo "... tests/test_address.s"
+	@echo "... tests/test_bytearray.o"
+	@echo "... tests/test_bytearray.i"
+	@echo "... tests/test_bytearray.s"
+	@echo "... tests/test_client.o"
+	@echo "... tests/test_client.i"
+	@echo "... tests/test_client.s"
 	@echo "... tests/test_config.o"
 	@echo "... tests/test_config.i"
 	@echo "... tests/test_config.s"
@@ -956,6 +1115,9 @@ help:
 	@echo "... tests/test_scheduler.o"
 	@echo "... tests/test_scheduler.i"
 	@echo "... tests/test_scheduler.s"
+	@echo "... tests/test_server.o"
+	@echo "... tests/test_server.i"
+	@echo "... tests/test_server.s"
 	@echo "... tests/test_socket.o"
 	@echo "... tests/test_socket.i"
 	@echo "... tests/test_socket.s"

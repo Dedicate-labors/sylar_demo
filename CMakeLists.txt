@@ -27,6 +27,7 @@ set(LIB_SRC
     sylar/fd_manager.cpp
     sylar/address.cpp
     sylar/socket.cpp
+    sylar/bytearray.cpp
     )
 
 add_library(sylar SHARED ${LIB_SRC})  # 生成动态库
@@ -88,6 +89,21 @@ add_executable(test_socket tests/test_socket.cpp)  # test_socket
 add_dependencies(test_socket sylar)
 # force_redefine_file_macro_for_sources(test_thread)
 target_link_libraries(test_socket ${LIB_LIB})  # 连接动态库
+
+add_executable(test_bytearray tests/test_bytearray.cpp)  # test_bytearray
+add_dependencies(test_bytearray sylar)
+# force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_bytearray ${LIB_LIB})  # 连接动态库
+
+add_executable(test_client tests/test_client.cpp)  # test_client
+add_dependencies(test_client sylar)
+# force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_client ${LIB_LIB})  # 连接动态库
+
+add_executable(test_server tests/test_server.cpp)  # test_server
+add_dependencies(test_server sylar)
+# force_redefine_file_macro_for_sources(test_thread)
+target_link_libraries(test_server ${LIB_LIB})  # 连接动态库
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
