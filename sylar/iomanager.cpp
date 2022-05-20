@@ -107,8 +107,8 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     }
 
     FdContext::MutexType::Lock lock2(fd_ctx->mutex);
-    if(fd_ctx->events & event) {
-        // 如果是同一个事件
+    if(SYLAR_UNLIKELY(fd_ctx->events & event)) {
+        // 如果是同一个事件，已经加过了一次
         SYLAR_LOG_ERROR(g_logger) << "addEvent assert fd=" << fd
             << " event=" << event
             << " fd_ctx.event=" << fd_ctx->events;
@@ -195,6 +195,7 @@ bool IOManager::cancelEvent(int fd, Event event) {
         return false;
     }
 
+    // 修改epoll实例
     Event new_events = (Event)(fd_ctx->events & ~event);
     int op = new_events ? EPOLL_CTL_MOD:EPOLL_CTL_DEL;
     epoll_event epevent;
@@ -321,6 +322,7 @@ void IOManager::idle() {
         }while(true);
 
         std::vector<std::function<void()>> cbs;
+        // epoll_wait除了来句柄，超时也会来这，保证了不会有定时器任务被遗漏
         listExpiredCb(cbs);
         if(!cbs.empty()) {
             // 加入了定时器的任务
@@ -332,7 +334,7 @@ void IOManager::idle() {
         for(int i = 0; i < rt; ++i) {
             epoll_event& event = events[i];
             if(event.data.fd == m_tickleFds[0]) {
-                // 特别fd，读取后直接下一个，响应tickle
+                // 特别fd，读取后直接下一个，响应tickle，目的是更新epoll_wait超时时间
                 uint8_t dummy;
                 while(read(m_tickleFds[0], &dummy, 1) == 1);
                 continue;

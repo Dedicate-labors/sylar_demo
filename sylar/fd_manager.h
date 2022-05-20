@@ -1,4 +1,4 @@
-// 服务于IO hook功能
+// 服务于IO hook功能 和 socket中的fd，只服务于fd的初始状态，所以初始化一次即可
 #ifndef __SYLAR_FD_MANAGER_H__
 #define __SYLAR_FD_MANAGER_H__
 

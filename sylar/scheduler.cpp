@@ -254,6 +254,8 @@ bool Scheduler::stopping() {
 
 void Scheduler::idle() {
     SYLAR_LOG_INFO(g_logger) << "idle";
+    // stopping()==true，无任务，idle状态修改为TERM
+    // stopping()==false，有任务 | 没stop，idle状态修改为HOLD
     while(!stopping()) {
         sylar::Fiber::YieldToHold();
     }

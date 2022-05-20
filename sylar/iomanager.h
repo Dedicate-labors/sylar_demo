@@ -59,9 +59,11 @@ protected:
     void contextResize(size_t size);
     bool stopping(uint64_t& timeout);
 private:
+    // epoll 文件句柄
     int m_epfd = 0;
+    // pipe 文件句柄
     int m_tickleFds[2];
-
+    // 当前等待执行的事件数量
     std::atomic<size_t> m_pendingEventCount = {0};
     RWMutexType m_mutex;
     std::vector<FdContext*> m_fdContexts; 

@@ -1,34 +1,34 @@
-logs:
-    - name: root
-      level: info
-      appenders:
-          - type: FileLogAppender
-            file: /apps/logs/sylar/root.txt
-          - type: StdoutLogAppender
-    - name: system
-      level: info
-      appenders:
-          - type: FileLogAppender
-            file: /apps/logs/sylar/system.txt
-          - type: StdoutLogAppender
+# logs:
+#     - name: root
+#       level: info
+#       appenders:
+#           - type: FileLogAppender
+#             file: /apps/logs/sylar/root.txt
+#           - type: StdoutLogAppender
+#     - name: system
+#       level: info
+#       appenders:
+#           - type: FileLogAppender
+#             file: /apps/logs/sylar/system.txt
+#           - type: StdoutLogAppender
 # 上面的logs[{{name, root}, {level, info}, ...}, {...}]
 
 # 下面是测试用的
-system:
-    port: 9980
-    value: 15
-    int_vec:
-        - 10
-        - 20
-    int_list: [20, 30, 40]
-    int_set: [20, 10, 60, 20]
-    int_uset: [10, 20, 20, 30]
-    str_int_map:
-        k: 30
-        k2: 20
-        k3: 10
-    str_int_umap:
-        k: 66
+# system:
+#     port: 9980
+#     value: 15
+#     int_vec:
+#         - 10
+#         - 20
+#     int_list: [20, 30, 40]
+#     int_set: [20, 10, 60, 20]
+#     int_uset: [10, 20, 20, 30]
+#     str_int_map:
+#         k: 30
+#         k2: 20
+#         k3: 10
+#     str_int_umap:
+#         k: 66
 class:
     person:
         name: sylar

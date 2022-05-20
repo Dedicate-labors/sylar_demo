@@ -51,6 +51,7 @@ void print_yaml(const YAML::Node& node, int level) {
     }
 }
 
+// 读取配置文件
 void test_yaml() {
     YAML::Node root = YAML::LoadFile("/home/xlzhang/Project/demo/sylar_demo/bin/conf/log.yml");
     print_yaml(root, 0);
@@ -201,14 +202,14 @@ void test_log() {
 
 int main(int argc, char **argv) {
     // test_yaml();
+    // test_log();
+    test_class();
     // test_config();
-    // test_class();
-    test_log();
-    sylar::Config::Visit([](sylar::ConfigVarBase::ptr var) {
-        SYLAR_LOG_INFO(SYLAR_LOG_ROOT()) << "name=" << var->getName()
-            << " description=" << var->getDescription()
-            << " typename=" << var->getTypeName()
-            << " value=" << var->toString();
-    });
+    // sylar::Config::Visit([](sylar::ConfigVarBase::ptr var) {
+    //     SYLAR_LOG_INFO(SYLAR_LOG_ROOT()) << "name=" << var->getName()
+    //         << " description=" << var->getDescription()
+    //         << " typename=" << var->getTypeName()
+    //         << " value=" << var->toString();
+    // });
     return 0;
 }

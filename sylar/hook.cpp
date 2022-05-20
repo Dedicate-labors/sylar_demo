@@ -121,7 +121,7 @@ retry:
         n = fun(fd, std::forward<Args>(args)...);
     }
     if(n == -1 && errno == EAGAIN) {
-    // 阻塞状态
+    // 非阻塞读写，缓冲区被读完或者缓存区被写满
         sylar::IOManager* iom = sylar::IOManager::GetThis();
         sylar::Timer::ptr timer;
         std::weak_ptr<timer_info> winfo(tinfo);
@@ -278,6 +278,7 @@ int connect_with_timeout(int fd, const struct sockaddr* addr, socklen_t addrlen,
         }, winfo);
     }
 
+    // 加入写事件
     int rt = iom->addEvent(fd, sylar::IOManager::WRITE);
     if(rt == 0) {
         // 从YieldToHold复苏，要么connect成功了，要么超时了
@@ -317,6 +318,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 }
 
 int accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
+    // 读事件触发写事件 
     int fd = do_io(s, accept_f, "accept", sylar::IOManager::READ, SO_RCVTIMEO, addr, addrlen);
     if(fd >= 0) {
         sylar::FdMgr::GetInstance().get(fd, true);

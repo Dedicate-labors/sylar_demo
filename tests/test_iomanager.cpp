@@ -30,6 +30,7 @@ void test_fiber() {
             SYLAR_LOG_INFO(g_logger) << "read callback";
         });
 
+
         // 单独执行write可以完全关闭退出，但无法执行read，需要关闭触发read event
         sylar::IOManager::GetThis()->addEvent(sock_fd, sylar::IOManager::WRITE, [](){
             SYLAR_LOG_INFO(g_logger) << "write callback";
@@ -55,13 +56,13 @@ void test_timer() {
         SYLAR_LOG_INFO(g_logger) << "hello timer i = " << i;
         if(++i == 3) {
             s_timer->reset(2000, true);
-            // s_timer->cancel();
+            s_timer->cancel();
         }
     }, true);
 }
 
 int main(int argc, char **argv) {
-    // test1();
-    test_timer();
+    // test_timer();
+    test1();
     return 0;
 }

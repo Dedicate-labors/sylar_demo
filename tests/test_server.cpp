@@ -52,12 +52,11 @@ void server() {
             SYLAR_LOG_INFO(g_logger) << "send fail rt=" << rt;
             return;
         }
-        break;
     }
 }
 
 int main(int argc, char** argv) {
-    sylar::IOManager iom(1,true,"server_iom");
+    sylar::IOManager iom(4,true,"server_iom");
     iom.schedule(server);
     return 0;
 }

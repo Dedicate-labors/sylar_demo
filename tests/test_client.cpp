@@ -25,7 +25,7 @@ void client() {
     ba->setPosition(0);
     record = ba->toString();     // 获取要发送的二进制
     int rt = sock->send(&record[0], record.size());
-    SYLAR_LOG_INFO(g_logger) << "send size=" << rt;
+    // SYLAR_LOG_INFO(g_logger) << "send size=" << rt;
     if(rt <= 0) {
         SYLAR_LOG_INFO(g_logger) << "send fail rt=" << rt;
         return;
@@ -36,7 +36,7 @@ void client() {
     std::string buffs;
     buffs.resize(4096);
     rt = sock->recv(&buffs[0], buffs.size());
-    SYLAR_LOG_INFO(g_logger) << "recv size=" << rt;
+    // SYLAR_LOG_INFO(g_logger) << "recv size=" << rt;
     if(rt <= 0) {
         SYLAR_LOG_INFO(g_logger) << "recv fail rt=" << rt;
         return;
@@ -46,11 +46,18 @@ void client() {
     ba->writeStringWithoutLength(buffs);
     ba->setPosition(0);
     buffs = ba->readStringF16();
-    SYLAR_LOG_INFO(g_logger) << buffs;
+    // SYLAR_LOG_INFO(g_logger) << buffs;
 }
 
 int main(int argc, char** argv) {
-    sylar::IOManager iom(3,false,"client_iom");
-    iom.schedule(client);
+    uint64_t start = sylar::GetCurrentMS();
+    {
+        sylar::IOManager iom(1,false,"client_iom");
+        for(int i = 0; i < 10000; i++) {
+            iom.schedule(client);
+        }
+    }
+    uint64_t end = sylar::GetCurrentMS();
+    SYLAR_LOG_INFO(g_logger) << "平均耗时（单位秒）：" << ((end-start) * 1.0)/1000;
     return 0;
 }

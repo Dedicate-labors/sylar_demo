@@ -103,6 +103,7 @@ public:
     std::string getThreadName() const { return m_threadName; }
 
     std::stringstream& getSs() { return m_ss; }
+    // m_ss进行格式化
     void format(const char * fmt, ...);
     void format(const char *fmt, va_list al);
 private:
